@@ -1,0 +1,7 @@
+*~
+*.pyc
+*.jpg
+*.sh.e*
+*.sh.o*
+in_data
+tmp
