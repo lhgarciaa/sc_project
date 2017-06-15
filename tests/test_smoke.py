@@ -55,3 +55,7 @@ class RunSmokeTests(unittest.TestCase):
                             format(cmd_dct['OUTPUT_PATH'], 
                                    cmd_dct['EXP_CONTENT_PATH']))
 
+            os.remove(cmd_dct['OUTPUT_PATH'])
+
+            
+
