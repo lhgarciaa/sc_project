@@ -22,7 +22,7 @@ def main():
     args = vars(parser.parse_args())
 
     input_overlap_csv_wildcard = args['input_overlap_csv_wildcard']
-    overlap_csv_path_lst = glob.glob(input_overlap_csv_wildcard)
+    overlap_csv_path_lst = sorted(glob.glob(input_overlap_csv_wildcard))
     output_agg_overlap_csv = args['output_agg_overlap_csv']
 
     assert len(overlap_csv_path_lst),\
