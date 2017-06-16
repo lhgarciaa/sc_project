@@ -1,2 +1,0 @@
-COMMAND, OUTPUT_PATH, EXP_CONTENT_PATH
-echo "hi there" > hi_there.txt, hi_there.txt, ../test_data/exp_hi_there.txt

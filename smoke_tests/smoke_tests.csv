@@ -1,0 +1,3 @@
+COMMAND, OUTPUT_PATH, EXP_CONTENT_PATH
+echo "hi there" > hi_there.txt, hi_there.txt, exp_hi_there.txt
+python ../src/agg_overlap.py -i "../test_data/agg_overlap/SW010101-01A/overlap/2/SW010101-01A_1_0*.csv" -o SW010101-01A_ch2_grid-035.csv, SW010101-01A_ch2_grid-035.csv, exp_SW010101-01A_ch2_grid-035.csv

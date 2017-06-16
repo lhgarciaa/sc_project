@@ -38,9 +38,8 @@ class RunSmokeTests(unittest.TestCase):
 
             #verify output file exists
             self.assertTrue(os.path.isfile(cmd_dct['OUTPUT_PATH']),
-                            msg='"{}" not there\ncwd is {}'.format(
-                                cmd_dct['OUTPUT_PATH'], 
-                                os.getcwd()))
+                            msg='\n\nThe command\n{}\ndid not generate expected output\n{}\ncwd is {}\n'.format(cmd_dct['COMMAND'], cmd_dct['OUTPUT_PATH'], 
+                               os.getcwd()))
 
 
             #verify output file matches expected content
