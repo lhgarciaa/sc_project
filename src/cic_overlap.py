@@ -18,13 +18,11 @@ def read_overlap_csv(input_csv_path):
 
     with open(input_csv_path, 'rb') as csvfile:
         csvreader = csv.reader(csvfile)
-        num_metalines = -1
+        num_metalines = 0
         for row_index, row in enumerate(csvreader):
-            if row_index == 0:
-                assert len(row) == 1
-                metalines_row_arr = row[0].split(':')
-                assert metalines_row_arr[0] == 'Metalines'
-                num_metalines = int(metalines_row_arr[1])
+            if row_index == 0 and len(row) == 1 and \
+               row[0].split(':')[0] == 'Metalines':
+                num_metalines = int(row[0].split(':')[1])
 
             elif row_index < num_metalines:
                 assert len(row) == 1
