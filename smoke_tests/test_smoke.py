@@ -49,7 +49,8 @@ class RunSmokeTests(unittest.TestCase):
                                 os.getcwd()))
 
             self.assertTrue(filecmp.cmp(cmd_dct['OUTPUT_PATH'], 
-                                        cmd_dct['EXP_CONTENT_PATH']),
+                                        cmd_dct['EXP_CONTENT_PATH'],
+                                        shallow=False),
                             msg='"{}" and "{}" are not the same'.\
                             format(cmd_dct['OUTPUT_PATH'], 
                                    cmd_dct['EXP_CONTENT_PATH']))
