@@ -17,7 +17,6 @@ class RunSmokeTests(unittest.TestCase):
             csvreader = csv.reader(csvfile)
             
             #header into dict
-            cmd_dct = {}
             for row_idx, row in enumerate(csvreader):
         
                 #read header
@@ -26,6 +25,7 @@ class RunSmokeTests(unittest.TestCase):
                     header_names = [x.strip() for x in header_row]
 
                 else:
+                    cmd_dct = {}
                     for col_idx, col in enumerate(row):
                         cmd_dct[header_names[col_idx]] = row[col_idx].strip()
                     cmd_dct_lst.append(cmd_dct)
@@ -48,6 +48,7 @@ class RunSmokeTests(unittest.TestCase):
                                 cmd_dct['EXP_CONTENT_PATH'], 
                                 os.getcwd()))
 
+            subprocess.call(['dos2unix', '-q', cmd_dct['OUTPUT_PATH']])
             self.assertTrue(filecmp.cmp(cmd_dct['OUTPUT_PATH'], 
                                         cmd_dct['EXP_CONTENT_PATH'],
                                         shallow=False),
