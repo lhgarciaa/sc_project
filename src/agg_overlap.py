@@ -4,6 +4,9 @@ import argparse
 import cic_overlap
 import glob
 import csv
+import cic_utils
+import cPickle as pickle
+
 
 def main(): 
     parser = argparse.ArgumentParser(description="Aggregates a wildcard of overlap csv files into output csv file.")
@@ -22,6 +25,7 @@ def main():
     args = vars(parser.parse_args())
 
     input_overlap_csv_wildcard = args['input_overlap_csv_wildcard']
+    #sort glob for consistency of test results
     overlap_csv_path_lst = sorted(glob.glob(input_overlap_csv_wildcard))
     output_agg_overlap_csv = args['output_agg_overlap_csv']
 
@@ -49,6 +53,10 @@ def main():
     with open(output_agg_overlap_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerows(all_rows)
+
+    output_pickle_path = cic_utils.pickle_path(output_agg_overlap_csv)
+    pickle_dct = cic_utils.pickle_dct(args)
+    pickle.dump(pickle_dct, open(output_pickle_path, "wb"))
         
 if __name__=='__main__':
     main()

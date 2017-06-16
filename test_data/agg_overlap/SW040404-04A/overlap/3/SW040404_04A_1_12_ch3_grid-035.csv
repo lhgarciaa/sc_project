@@ -1,4 +1,4 @@
-Metalines: 8
+Metalines: 10
 Project Name: SW130212-02A
 Case Name: SW130212-02A
 Slide Number: 1_12
@@ -6,6 +6,8 @@ Channel Number: 3
 ARA Level: 032
 Tracer: FG cell count
 Injection Site: None
+Overlap Format: Grid
+Grid Size: 35
 (HEMISPHERE:COLUMN:ROW), GRID ONLY, OVERLAP, COLOR(S), REGION(S)
 (l:6:27), 30624, 1, 106:203:185|106:203:186, PIR_2|PIR_1
 (l:8:21), 30624, 1, 33:152:101|36:138:93, AId_2/3|ORBl_2/3
