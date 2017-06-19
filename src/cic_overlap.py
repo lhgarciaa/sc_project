@@ -1,12 +1,13 @@
-#general utilities related to 
+#general utilities related to
 import csv
 
+
 def read_overlap_csv(input_csv_path):
-    """Return an overlap csv 
+    """Return an overlap csv
 
     Args:
         input_csv_path
-    
+
     Returns:
        dict: dictionary with meta value key value pairs
        list: list of header labels
@@ -28,7 +29,6 @@ def read_overlap_csv(input_csv_path):
                 assert len(row) == 1
                 row_arr = row[0].split(':')
                 meta_dct[row_arr[0].strip()] = row_arr[1].strip()
-                
             elif row_index == num_metalines:
                 header_lst = [col.strip() for col in row]
 
@@ -36,6 +36,7 @@ def read_overlap_csv(input_csv_path):
                 rows.append([col.strip() for col in row])
 
     return (meta_dct, header_lst, rows)
+
 
 if __name__ == "__main__":
     import doctest

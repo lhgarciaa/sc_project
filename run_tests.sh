@@ -3,9 +3,9 @@ set -e
 
 #check syntax
 printf "CHECKING SYNTAX\n"
-pyflakes src/*.py
-pyflakes unit_tests/*.py
-pyflakes smoke_tests/*.py
+flake8 src/*.py
+flake8 unit_tests/*.py
+flake8 smoke_tests/*.py
 
 #run unit tests
 printf "RUNNING UNIT TESTS\n"

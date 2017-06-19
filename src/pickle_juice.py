@@ -6,22 +6,27 @@ import glob
 import shutil
 import cic_utils
 
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Reproducability friendly code, manages data and arguments used to generate it")
-    parser.add_argument('-co','--corresponding_output',
-        help='Path to output of (typically image) data corresponding to pickle',
+        description=
+        "Reproducability friendly code, manages data and arguments used"
+        " to generate it")
+    parser.add_argument('-co', '--corresponding_output',
+                        help="Path to output of (typically image) data"
+                        " corresponding to pickle",
                         required=True)
 
-    parser.add_argument('-pa','--print_args',
-    help='Print command line arguments used to produce corresponding output',
+    parser.add_argument('-pa', '--print_args',
+                        help="Print command line arguments used to produce "
+                        "corresponding output",
                         action='store_true')
 
-    parser.add_argument('-cpp','--copy_path',
-        help='Directory to copy corresponding output and argument pickle dict',
+    parser.add_argument('-cpp', '--copy_path',
+                        help='Directory to copy corresponding output and '
+                        'argument pickle dict',
                         default=False)
-                        
-    parser.add_argument('-v', '--verbose', 
+    parser.add_argument('-v', '--verbose',
                         help='Print matrix, cluster related output',
                         action='store_true')
 
@@ -41,7 +46,7 @@ def main():
             print_args = True
 
         if os.path.isfile(pickle_path):
-            p = pickle.load( open(pickle_path, "rb") )
+            p = pickle.load(open(pickle_path, "rb"))
 
             assert p, 'Problem reading {}'.format(pickle_path)
 
@@ -72,18 +77,17 @@ def main():
 
             if copy_path:
                 assert(os.path.isdir(copy_path))
-                if verbose: 
+                if verbose:
                     print("copying {} to {}".
                           format(corresponding_output, copy_path))
                 shutil.copy2(corresponding_output, copy_path)
-                if verbose: 
+                if verbose:
                     print("copying {} to {}".
                           format(pickle_path, copy_path))
                 shutil.copy2(pickle_path, copy_path)
-    
         else:
-            print("WARNING: No pickle path {} found for {}"\
-                  .format(pickle_path, corresponding_output))
+            print("WARNING: No pickle path {} found for {}".
+                  format(pickle_path, corresponding_output))
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
