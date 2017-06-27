@@ -1,4 +1,4 @@
-#CIC utilities typically related to i/o
+# CIC utilities typically related to i/o
 import os
 import sys
 

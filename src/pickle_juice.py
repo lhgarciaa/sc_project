@@ -9,9 +9,8 @@ import cic_utils
 
 def main():
     parser = argparse.ArgumentParser(
-        description=
-        "Reproducability friendly code, manages data and arguments used"
-        " to generate it")
+        description="Reproducability friendly code, manages data and arguments"
+        " used to generate it")
     parser.add_argument('-co', '--corresponding_output',
                         help="Path to output of (typically image) data"
                         " corresponding to pickle",
@@ -30,11 +29,11 @@ def main():
                         help='Print matrix, cluster related output',
                         action='store_true')
 
-    #required args, and derivitives
+    # required args, and derivitives
     args = vars(parser.parse_args())
     corresponding_output_wildcard = args['corresponding_output']
 
-    #optional args
+    # optional args
     print_args = args['print_args']
     copy_path = args['copy_path']
     verbose = args['verbose']
@@ -61,11 +60,11 @@ def main():
                         print("", end=' ')
 
                     elif type(p[arg]) == bool and p[arg]:
-                        #note this only works for action='store_true'
+                        # note this only works for action='store_true'
                         print("--{}".format(arg), end=' ')
 
                     elif type(p[arg]) == bool and not p[arg]:
-                        #note this only works for action='store_true'
+                        # note this only works for action='store_true'
                         print("", end=' ')
 
                     elif type(p[arg]) == str and ' ' in p[arg]:
@@ -88,6 +87,7 @@ def main():
         else:
             print("WARNING: No pickle path {} found for {}".
                   format(pickle_path, corresponding_output))
+
 
 if __name__ == '__main__':
     main()
