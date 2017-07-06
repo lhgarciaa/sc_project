@@ -81,7 +81,7 @@ def main():
         assert tracer == TRACER
 
         # moving values
-        ara_level = row[agg_overlap_csv_header.index('ARA Level')]
+        ara_level = int(row[agg_overlap_csv_header.index('ARA Level')])
         hemi_col_row = row[agg_overlap_csv_header.
                            index('(HEMISPHERE:COLUMN:ROW)')]
 
