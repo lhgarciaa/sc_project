@@ -13,8 +13,7 @@ python -m unittest discover
 
 #now find all smoke tests and run them
 printf "RUNNING SMOKE TESTS\n"
-cd smoke_tests
-python -m unittest test_smoke.RunSmokeTests
+python -m unittest discover smoke_tests
 
 printf "\nOK\n"
 set +e

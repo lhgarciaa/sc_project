@@ -46,6 +46,30 @@ class TestCicOverlap(unittest.TestCase):
              'MOs_1|BORDER6']
         ]
 
+        self.test_agg_overlap_csv_path = 'test_data/test_agg_overlap_csv.csv'
+        """
+        ARA Level,Atlas Name,Atlas Version,Case Name,Channel Number,...
+        19,ARA,1,SW130212-02A,2,350,BLA_al,Grid,SW130212-02A,1_08,PHAL,(l:0:1),118286,4214,130:199:175|154:210:189|255:255:255,MOB_opl|border9|BORDER6
+        19,ARA,1,SW130212-02A,2,350,BLA_al,Grid,SW130212-02A,1_08,PHAL,(l:0:2),119911,2589,130:199:173|130:199:174|130:199:175|130:199:176|154:210:189|255:255:255,MOB_mi|MOB_gl|MOB_opl|MOB_ipl|border9|BORDER6
+        ...
+        """
+
+        self.exp_agg_overlap_csv_header_lst = [
+            'ARA Level', 'Atlas Name', 'Atlas Version', 'Case Name',
+            'Channel Number', 'Grid Size', 'Injection Site',
+            'Overlap Format', 'Project Name', 'Slide Number', 'Tracer',
+            '(HEMISPHERE:COLUMN:ROW)', 'GRID ONLY', 'OVERLAP', 'COLOR(S)',
+            'REGION(S)']
+
+        self.exp_agg_overlap_csv_two_rows = [
+            ['19', 'ARA', '1', 'SW130212-02A', '2', '350', 'BLA_al', 'Grid',
+             'SW130212-02A', '1_08', 'PHAL', '(l:0:1)', '118286', '4214',
+             '130:199:175|154:210:189|255:255:255', 'MOB_opl|border9|BORDER6'],
+            ['19', 'ARA', '1', 'SW130212-02A', '2', '350', 'BLA_al', 'Grid',
+             'SW130212-02A', '1_08', 'PHAL', '(l:0:2)', '119911', '2589',
+             '130:199:173|130:199:174|130:199:175|130:199:176|154:210:189'
+             '|255:255:255', 'MOB_mi|MOB_gl|MOB_opl|MOB_ipl|border9|BORDER6']]
+
     def test_read_overlap_csv(self):
         (overlap_csv_meta_dct, overlap_csv_header_lst, overlap_csv_rows) = \
             cic_overlap.read_overlap_csv(self.test_overlap_csv_path)
@@ -54,3 +78,12 @@ class TestCicOverlap(unittest.TestCase):
         self.assertEqual(self.exp_overlap_csv_header_lst,
                          overlap_csv_header_lst)
         self.assertEqual(self.exp_overlap_csv_rows, overlap_csv_rows)
+
+    def test_read_agg_overlap_csv(self):
+        (agg_overlap_csv_header_lst, agg_overlap_csv_rows) = \
+            cic_overlap.read_agg_overlap_csv(self.test_agg_overlap_csv_path)
+
+        self.assertEqual(self.exp_agg_overlap_csv_header_lst,
+                         agg_overlap_csv_header_lst)
+        self.assertEqual(self.exp_agg_overlap_csv_two_rows,
+                         agg_overlap_csv_rows[0:2])

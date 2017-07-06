@@ -14,7 +14,7 @@ class RunSmokeTests(unittest.TestCase):
         # COMMAND, OUTPUT_PATH, EXP_CONTENT_PATH
         # echo "hi there" > hi_there.txt, hi_there.txt, exp_hi_there.txt
         cmd_dct_lst = []
-        with open('smoke_tests.csv', 'rb') as csvfile:
+        with open('smoke_tests/smoke_tests.csv', 'rb') as csvfile:
             csvreader = csv.reader(csvfile)
             # header into dict
             for row_idx, row in enumerate(csvreader):
@@ -52,7 +52,9 @@ class RunSmokeTests(unittest.TestCase):
             self.assertTrue(filecmp.cmp(cmd_dct['OUTPUT_PATH'],
                                         cmd_dct['EXP_CONTENT_PATH'],
                             shallow=False),
-                            msg='"{}" and "{}" are not the same'.
-                            format(cmd_dct['OUTPUT_PATH'],
-                                   cmd_dct['EXP_CONTENT_PATH']))
+                            msg='files are not the same, run:\n'
+                            'meld {} {}\nto view differences.'.
+                            format(cmd_dct['EXP_CONTENT_PATH'],
+                                   cmd_dct['OUTPUT_PATH']))
+
             os.remove(cmd_dct['OUTPUT_PATH'])

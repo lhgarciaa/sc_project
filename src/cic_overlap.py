@@ -1,9 +1,11 @@
 # general utilities related to
 import csv
+import os
 
 
 def read_overlap_csv(input_csv_path):
-    """Return an overlap csv
+    """
+    Return an overlap csv
 
     Args:
         input_csv_path
@@ -17,6 +19,7 @@ def read_overlap_csv(input_csv_path):
     header_lst = []
     rows = []
 
+    assert os.path.isfile(input_csv_path)
     with open(input_csv_path, 'rb') as csvfile:
         csvreader = csv.reader(csvfile)
         num_metalines = 0
@@ -36,6 +39,26 @@ def read_overlap_csv(input_csv_path):
                 rows.append([col.strip() for col in row])
 
     return (meta_dct, header_lst, rows)
+
+
+def read_agg_overlap_csv(input_csv_path):
+    """
+    Return an agg overlap csv tuple
+
+    Args:
+        input_csv_path
+
+    Returns:
+       list: list of header labels
+       list: list of rows in csv
+    """
+    header_lst = []
+    rows = []
+    # can simply call read_overlap_csv method and ignore meta_dct value
+    tup = read_overlap_csv(input_csv_path=input_csv_path)
+    (header_lst, rows) = tup[1:len(tup)]
+
+    return (header_lst, rows)
 
 
 if __name__ == "__main__":
