@@ -29,7 +29,7 @@ def main():
 
     input_agg_overlap_csv = args['input_agg_overlap_csv']
     output_ctx_mat_csv = args['output_ctx_mat_csv']
-    # verbose = args['verbose']
+    verbose = args['verbose']
 
     assert os.path.isfile(input_agg_overlap_csv), "{} not found".\
         format(input_agg_overlap_csv)
@@ -44,6 +44,10 @@ def main():
     curr_ara_level = -1
     # keep track of overlap for each injection site
     inj_site_overlap_dcts = defaultdict(lambda: defaultdict())
+
+    if verbose:
+        print("Calculating connectivity matrix from {} agg overlap rows".
+              format(len(agg_overlap_rows)))
 
     for row_idx, row in enumerate(agg_overlap_rows):
         # get constant vals, assume
@@ -143,6 +147,9 @@ def main():
         overlap_tup = \
             tuple(map(lambda x, y: x + y, overlap_tup, (grid_only, overlap)))
         inj_site_overlap_dct[cell_lbl] = overlap_tup
+        pct_str = "\r{0:0.2f}% complete... ".\
+            format((float(row_idx)/float(len(agg_overlap_rows)))*100.0)
+        print(pct_str, end='')
 
     # fill all rows with dct lst, need initial blank for header
     cell_lbls = [''] + sorted(cell_lbl_set, key=cell_lbl_to_tup)
@@ -163,6 +170,9 @@ def main():
                 else:
                     cols.append('')
             csvwriter.writerow(cols)  # string technically a sequence
+
+    pct_str = "\r{0:0.2f}% complete... ".format(100)
+    print(pct_str)
 
     output_pickle_path = cic_utils.pickle_path(output_ctx_mat_csv)
     pickle_dct = cic_utils.pickle_dct(args)
