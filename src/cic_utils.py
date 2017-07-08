@@ -131,6 +131,8 @@ def conv_rect_ctx_mat_to_sq(row_roi_name_npa, col_roi_name_npa, ctx_mat_npa):
         # create set of all rois
         sq_roi_name_lst = \
             sorted(set(np.append(col_roi_name_npa, row_roi_name_npa)))
+        row_roi_name_lst = row_roi_name_npa.tolist()
+        col_roi_name_lst = col_roi_name_npa.tolist()
 
         # create new matrix arr that is N x N in size where N=len(set all rois)
         # march through original matrix
@@ -140,8 +142,8 @@ def conv_rect_ctx_mat_to_sq(row_roi_name_npa, col_roi_name_npa, ctx_mat_npa):
             for col_index, col_roi in enumerate(sq_roi_name_lst):
                 # if row_roi and col_roi connected, mark as connected
                 if row_roi in row_roi_name_npa and col_roi in col_roi_name_npa:
-                    row_index = row_roi_name_npa.tolist().index(row_roi)
-                    col_index = col_roi_name_npa.tolist().index(col_roi)
+                    row_index = row_roi_name_lst.index(row_roi)
+                    col_index = col_roi_name_lst.index(col_roi)
                     row_arr.append(ctx_mat_npa[row_index][col_index])
                 else:
                     row_arr.append(0)
