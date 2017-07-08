@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Note: if not N x N will pad
 from __future__ import print_function
 import argparse
@@ -25,9 +25,6 @@ def main():
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
-    parser.add_argument('-cts', '--convert_to_square',
-                        help='Convert to square rather than pad',
-                        action='store_true')
     parser.add_argument('-pop', '--print_output_path',
                         help='Simply print output path and quit',
                         action='store_true')
@@ -51,8 +48,6 @@ def main():
     assert os.path.isfile(input_csv_path),\
         "can't find input csv file {}".format(input_csv_path)
 
-    convert_to_sq = args['convert_to_square']
-
     # OPEN, READ INPUT CSV
     (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
         cic_utils.read_ctx_mat(input_csv_path)
@@ -72,23 +67,13 @@ def main():
             print("and/or row ROIs \n{}\n don't match col ROIs\n{}".
                   format(row_roi_name_npa, col_roi_name_npa))
 
-        if convert_to_sq:  # conv to square (duplicate all nodes)
-            if verbose:
-                print("converting to square...")
-            (sq_roi_name_npa, sq_ctx_mat_npa) = \
-                cic_utils.conv_rect_ctx_mat_to_sq(row_roi_name_npa,
-                                                  col_roi_name_npa,
-                                                  ctx_mat_npa)
-            roi_name_npa = sq_roi_name_npa
-
-        else:
-            if verbose:
-                print("padding to square...")
-            (pad_row_roi_name_npa, pad_col_roi_name_npa, sq_ctx_mat_npa) = \
-                cic_utils.pad_rect_ctx_mat_to_sq(row_roi_name_npa,
-                                                 col_roi_name_npa, ctx_mat_npa)
-            roi_name_npa = \
-                pad_col_roi_name_npa
+        if verbose:
+            print("converting to square...")
+        (sq_roi_name_npa, sq_ctx_mat_npa) = \
+            cic_utils.conv_rect_ctx_mat_to_sq(row_roi_name_npa,
+                                              col_roi_name_npa,
+                                              ctx_mat_npa)
+        roi_name_npa = sq_roi_name_npa
 
         if verbose:
             shape = sq_ctx_mat_npa.shape

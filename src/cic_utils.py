@@ -118,6 +118,39 @@ def pad_rect_ctx_mat_to_sq(row_roi_name_npa, col_roi_name_npa, ctx_mat_npa):
         return (pad_row_roi_name_npa, pad_col_roi_name_npa, pad_ctx_mat_npa)
 
 
+# returns tuple(
+# sq_roi_name_npa = np.array(roi_name_arr)
+# sq_ctx_mat_npa = np.array(ctx_mat_arr_arr)
+#                                                      )
+def conv_rect_ctx_mat_to_sq(row_roi_name_npa, col_roi_name_npa, ctx_mat_npa):
+    if is_sq(col_roi_name_npa=col_roi_name_npa,
+             row_roi_name_npa=row_roi_name_npa,
+             ctx_mat_npa=ctx_mat_npa):
+        return(row_roi_name_npa, ctx_mat_npa)
+    else:
+        # create set of all rois
+        sq_roi_name_lst = \
+            sorted(set(np.append(col_roi_name_npa, row_roi_name_npa)))
+
+        # create new matrix arr that is N x N in size where N=len(set all rois)
+        # march through original matrix
+        sq_ctx_mat_arr_arr = []
+        for row_index, row_roi in enumerate(sq_roi_name_lst):
+            row_arr = []
+            for col_index, col_roi in enumerate(sq_roi_name_lst):
+                # if row_roi and col_roi connected, mark as connected
+                if row_roi in row_roi_name_npa and col_roi in col_roi_name_npa:
+                    row_index = row_roi_name_npa.tolist().index(row_roi)
+                    col_index = col_roi_name_npa.tolist().index(col_roi)
+                    row_arr.append(ctx_mat_npa[row_index][col_index])
+                else:
+                    row_arr.append(0)
+
+            sq_ctx_mat_arr_arr.append(row_arr)
+
+        return (np.array(sq_roi_name_lst), np.array(sq_ctx_mat_arr_arr))
+
+
 # CHECK FORMATTING OF MATRICES AND ARRAYS
 #  dup_check_roi_lst : list of all rois found so far
 #  roi : ROI string with strip() but no lowercase applied
