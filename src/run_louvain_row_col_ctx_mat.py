@@ -52,6 +52,10 @@ def main():
     (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
         cic_utils.read_ctx_mat(input_csv_path)
 
+    if verbose:
+        print("running louvain {} times with gamma {}\non {}".format(
+            runs, gamma, input_csv_path))
+
     # double check formatting, shape of array
     if cic_utils.is_sq(row_roi_name_npa=row_roi_name_npa,
                        col_roi_name_npa=col_roi_name_npa,
@@ -62,22 +66,23 @@ def main():
     else:  # else if not square, then either pad or convert
         if verbose:
             shape = ctx_mat_npa.shape
-            print("Matrix in {} is not square\nrows {}, columns {}".
-                  format(input_csv_path, shape[0], shape[1]))
-            print("and/or row ROIs \n{}\n don't match col ROIs\n{}".
-                  format(row_roi_name_npa, col_roi_name_npa))
+            print("matrix in is not square\nrows/cols {}/{}".format(
+                shape[0], shape[1]))
+            print("and/or row ROIs don't match col ROIs")
 
         if verbose:
             print("converting to square...")
+            import time
+            start = time.time()
         (sq_roi_name_npa, sq_ctx_mat_npa) = \
             cic_utils.conv_rect_ctx_mat_to_sq(row_roi_name_npa,
                                               col_roi_name_npa,
                                               ctx_mat_npa)
         roi_name_npa = sq_roi_name_npa
-
         if verbose:
             shape = sq_ctx_mat_npa.shape
-            print("with rows/cols {}/{} done".format(shape[0], shape[1]))
+            print("done in {:.02}s\nnew rows/cols {}/{}".format(
+                time.time()-start, shape[0], shape[1]))
 
     connectivity_matrix_npa = sq_ctx_mat_npa
 
@@ -87,6 +92,7 @@ def main():
 
     if verbose:
         print("Calling Louvain".format(runs))
+        start = time.time()
 
     # CALL LOUVAIN
     # generate louvain run arr dict, format
@@ -121,6 +127,8 @@ def main():
         louvain_run_arr_dict.append(louvain_run_dict)
     pct_str = "\r{0:0.2f}% complete... ".format(100)
     print(pct_str)
+    if verbose:
+        print("done in {:.02}s".format(time.time() - start))
 
     # WRITE LOUVAIN TO OUTPUT CSV
     # write louvain_run_arr_dict to output_csv_path

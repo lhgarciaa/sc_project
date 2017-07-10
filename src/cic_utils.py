@@ -128,29 +128,25 @@ def conv_rect_ctx_mat_to_sq(row_roi_name_npa, col_roi_name_npa, ctx_mat_npa):
              ctx_mat_npa=ctx_mat_npa):
         return(row_roi_name_npa, ctx_mat_npa)
     else:
-        # create set of all rois
-        sq_roi_name_lst = \
-            sorted(set(np.append(col_roi_name_npa, row_roi_name_npa)))
-        row_roi_name_lst = row_roi_name_npa.tolist()
-        col_roi_name_lst = col_roi_name_npa.tolist()
+        # create set of all rois... set so that duplicates are removed
+        sq_roi_name_npa = np.array(
+            sorted(set(np.append(col_roi_name_npa, row_roi_name_npa))))
 
         # create new matrix arr that is N x N in size where N=len(set all rois)
+        sq_ctx_mat_npa = np.zeros(
+            (len(sq_roi_name_npa),
+             len(sq_roi_name_npa))
+        )
         # march through original matrix
-        sq_ctx_mat_arr_arr = []
-        for row_index, row_roi in enumerate(sq_roi_name_lst):
-            row_arr = []
-            for col_index, col_roi in enumerate(sq_roi_name_lst):
-                # if row_roi and col_roi connected, mark as connected
-                if row_roi in row_roi_name_npa and col_roi in col_roi_name_npa:
-                    row_index = row_roi_name_lst.index(row_roi)
-                    col_index = col_roi_name_lst.index(col_roi)
-                    row_arr.append(ctx_mat_npa[row_index][col_index])
-                else:
-                    row_arr.append(0)
+        for orig_row_idx, row_roi in enumerate(row_roi_name_npa):
+            for orig_col_idx, col_roi in enumerate(col_roi_name_npa):
+                # mark as connected in new matrix
+                new_row_idx = np.where(sq_roi_name_npa == row_roi)[0][0]
+                new_col_idx = np.where(sq_roi_name_npa == col_roi)[0][0]
+                sq_ctx_mat_npa[new_row_idx][new_col_idx] = \
+                    ctx_mat_npa[orig_row_idx][orig_col_idx]
 
-            sq_ctx_mat_arr_arr.append(row_arr)
-
-        return (np.array(sq_roi_name_lst), np.array(sq_ctx_mat_arr_arr))
+        return (sq_roi_name_npa, sq_ctx_mat_npa)
 
 
 # CHECK FORMATTING OF MATRICES AND ARRAYS
