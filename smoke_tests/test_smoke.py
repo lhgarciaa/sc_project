@@ -3,6 +3,7 @@ import csv
 import subprocess
 import os
 import filecmp
+import time
 
 
 class RunSmokeTests(unittest.TestCase):
@@ -33,7 +34,11 @@ class RunSmokeTests(unittest.TestCase):
         for cmd_dct in cmd_dct_lst:
             # execute the command
             # note, security risk with shell=True if third-party test execution
+            start = time.time()
+            print("\ncalling {}...".format(cmd_dct['COMMAND']))
             subprocess.call(cmd_dct['COMMAND'], shell=True)
+            print("completed in {:0.2f}s".
+                  format(time.time() - start))
 
             # verify output file exists
             self.assertTrue(os.path.isfile(cmd_dct['OUTPUT_PATH']),
