@@ -104,17 +104,24 @@ def main():
     #     'community_structure' : community_structure_dict}, ... ]
     louvain_run_arr_dict = []
     for run_index in xrange(runs):
-        pct_str = "\r{0:0.2f}% complete... ".\
-            format((float(run_index)/float(runs))*100.0)
+
+        if run_index == 0:
+            pct_str = "\r{0:0.2f}% complete... ".\
+                format((float(run_index)/float(runs))*100.0)
+            iter_start = time.time()
+
+        elif run_index == 1:
+            iter_stop = time.time()
+            pct_str = "\r{:0.2f}% complete... ETC {:0.2f}s".\
+                format((float(run_index)/float(runs))*100.0,
+                       (runs - run_index) * (iter_stop-iter_start))
+
+        else:
+            pct_str = "\r{:0.2f}% complete... ETC {:0.2f}s".\
+                format((float(run_index)/float(runs))*100.0,
+                       (runs - run_index) * (iter_stop-iter_start))
         print(pct_str, end='')
         sys.stdout.flush()
-        if verbose:
-            if run_index == 0:
-                iter_start = time.time()
-
-            elif run_index == 1:
-                print("estimated time to completion {0:0.2f}s".
-                      format(runs * (time.time()-iter_start)))
 
         (ci, q) = bct.modularity_louvain_dir(W=connectivity_matrix_npa,
                                              gamma=gamma)
@@ -134,7 +141,7 @@ def main():
             gamma=gamma)
 
         louvain_run_arr_dict.append(louvain_run_dict)
-    pct_str = "\r{0:0.2f}% complete... ".format(100)
+    pct_str = "\r{0:0.2f}% complete                        ".format(100)
     print(pct_str)
     if verbose:
         print("done in {:.02}s".format(time.time() - start))
