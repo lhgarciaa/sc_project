@@ -8,6 +8,7 @@ import cPickle as pickle
 import cic_utils
 import bct
 import sys
+import time
 
 
 def main():
@@ -53,6 +54,7 @@ def main():
         cic_utils.read_ctx_mat(input_csv_path)
 
     if verbose:
+        print("{}".format(time.strftime("%m-%d-%Y %H:%M:%S", time.gmtime())))
         print("running louvain {} times with gamma {}\non {}".format(
             runs, gamma, input_csv_path))
 
@@ -72,7 +74,6 @@ def main():
 
         if verbose:
             print("converting to square...")
-            import time
             start = time.time()
         (sq_roi_name_npa, sq_ctx_mat_npa) = \
             cic_utils.conv_rect_ctx_mat_to_sq(row_roi_name_npa,
@@ -107,6 +108,14 @@ def main():
             format((float(run_index)/float(runs))*100.0)
         print(pct_str, end='')
         sys.stdout.flush()
+        if verbose:
+            if run_index == 0:
+                iter_start = time.time()
+
+            elif run_index == 1:
+                print("estimated time to completion {0:0.2f}s".
+                      format(runs * (time.time()-iter_start)))
+
         (ci, q) = bct.modularity_louvain_dir(W=connectivity_matrix_npa,
                                              gamma=gamma)
 

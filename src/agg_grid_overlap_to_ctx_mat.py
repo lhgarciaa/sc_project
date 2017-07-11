@@ -20,6 +20,8 @@ def main():
     parser.add_argument('-o', '--output_ctx_mat_csv',
                         help='Output path for connectivity matrix csv',
                         required=True)
+    parser.add_argument('-hemi', '--hemisphere_of_interest',
+                        help='exclusively include listed hemisphere in output')
     parser.add_argument('-v', '--verbose',
                         help='Print extra information about conversion',
                         action='store_true')
@@ -30,6 +32,8 @@ def main():
     input_agg_overlap_csv = args['input_agg_overlap_csv']
     output_ctx_mat_csv = args['output_ctx_mat_csv']
     verbose = args['verbose']
+    hemisphere_of_interest = args['hemisphere_of_interest']
+    check_hemi = hemisphere_of_interest is not None
 
     assert os.path.isfile(input_agg_overlap_csv), "{} not found".\
         format(input_agg_overlap_csv)
@@ -88,6 +92,9 @@ def main():
         ara_level = int(row[agg_overlap_csv_header.index('ARA Level')])
         hemi_col_row = row[agg_overlap_csv_header.
                            index('(HEMISPHERE:COLUMN:ROW)')]
+        hemi = hemi_col_row.split(':')[0].replace('(', '')
+        col_num = int(hemi_col_row.split(':')[1])
+        row_num = int(hemi_col_row.split(':')[2].replace(')', ''))
 
         if ara_level != curr_ara_level:
             curr_ara_level = ara_level
@@ -97,9 +104,6 @@ def main():
                        'r': {'row': sys.maxint, 'col': sys.maxint}}
 
         # update extents for sanity check
-        hemi = hemi_col_row.split(':')[0].replace('(', '')
-        col_num = int(hemi_col_row.split(':')[1])
-        row_num = int(hemi_col_row.split(':')[2].replace(')', ''))
         if col_num > max_ext[hemi]['col']:
             max_ext[hemi]['col'] = col_num
         if row_num > max_ext[hemi]['row']:
@@ -127,28 +131,31 @@ def main():
                    row_num, min_ext[hemi]['row'], max_ext[hemi]['row'],
                    grid_only, overlap, grid_size)
 
-        # make cell label
-        cell_lbl = "({}:{})".format(ara_level, hemi_col_row.
-                                    replace('(', '').replace(')', ''))
+        # only make and add lbl to dct if hemi of interest or not checking hemi
+        if not check_hemi or hemi == hemisphere_of_interest:
+            cell_lbl = "({}:{})".format(ara_level, hemi_col_row.
+                                        replace('(', '').replace(')', ''))
 
-        # build labels and dct lst
-        #   cell labels from all (HEMISPHERE:COLUMN:ROWS) values
-        cell_lbl_set = cell_lbl_set.union(frozenset({cell_lbl}))
+            # build labels and dct lst
+            #   cell labels from all (HEMISPHERE:COLUMN:ROWS) values
+            cell_lbl_set = cell_lbl_set.union(frozenset({cell_lbl}))
 
-        #   injection site labels from all Injection Site values
-        inj_site_lbl_set = inj_site_lbl_set.union(frozenset({inj_site}))
+            #   injection site labels from all Injection Site values
+            inj_site_lbl_set = inj_site_lbl_set.union(frozenset({inj_site}))
 
-        #   populate dcts
-        #     { 'Injection Site' : '...' {cell_lbl1 : (grid_only,overlap),
-        #                                 cell_lbl2 : ...} }
-        inj_site_overlap_dct = \
-            inj_site_overlap_dcts[inj_site]
-        overlap_tup = inj_site_overlap_dct.get(cell_lbl, (0, 0))
-        overlap_tup = \
-            tuple(map(lambda x, y: x + y, overlap_tup, (grid_only, overlap)))
-        inj_site_overlap_dct[cell_lbl] = overlap_tup
+            #   populate dcts
+            #     { 'Injection Site' : '...' {cell_lbl1 : (grid_only,overlap),
+            #                                 cell_lbl2 : ...} }
+            inj_site_overlap_dct = \
+                inj_site_overlap_dcts[inj_site]
+            overlap_tup = inj_site_overlap_dct.get(cell_lbl, (0, 0))
+            overlap_tup = tuple(
+                map(lambda x, y: x + y, overlap_tup, (grid_only, overlap)))
+
+            inj_site_overlap_dct[cell_lbl] = overlap_tup
+
         pct_str = "\r{0:0.2f}% complete... ".\
-            format((float(row_idx)/float(len(agg_overlap_rows)))*100.0)
+                  format((float(row_idx)/float(len(agg_overlap_rows)))*100.0)
         print(pct_str, end='')
 
     # fill all rows with dct lst, need initial blank for header
