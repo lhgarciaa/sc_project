@@ -12,5 +12,5 @@ num_runs=$3;
 venv_dir=$4;
 
 . $venv_dir/bin/activate
-python src/run_louvain_row_col_ctx_mat.py -v -i $row_column_input_csv -g $gamma -r $num_runs 
+python src/run_louvain_row_col_ctx_mat.py -v -i $row_column_input_csv -g $gamma -r $num_runs -ns $NSLOTS
 

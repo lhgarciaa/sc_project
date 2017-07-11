@@ -7,8 +7,8 @@ import os
 import cPickle as pickle
 import cic_utils
 import bct
-import sys
 import time
+from multiprocessing.dummy import Pool as ThreadPool
 
 
 def main():
@@ -29,6 +29,9 @@ def main():
     parser.add_argument('-pop', '--print_output_path',
                         help='Simply print output path and quit',
                         action='store_true')
+    parser.add_argument('-ns', '--num_slots',
+                        help='Number of slots to use for SMP',
+                        type=int, default=1)
 
     args = vars(parser.parse_args())
 
@@ -49,14 +52,16 @@ def main():
     assert os.path.isfile(input_csv_path),\
         "can't find input csv file {}".format(input_csv_path)
 
+    num_slots = args['num_slots']
+
     # OPEN, READ INPUT CSV
     (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
         cic_utils.read_ctx_mat(input_csv_path)
 
     if verbose:
         print("{}".format(time.strftime("%m-%d-%Y %H:%M:%S", time.gmtime())))
-        print("running louvain {} times with gamma {}\non {}".format(
-            runs, gamma, input_csv_path))
+        print("running louvain {} times using {} slots with gamma {}\non {}".
+              format(runs, num_slots, gamma, input_csv_path))
 
     # double check formatting, shape of array
     if cic_utils.is_sq(row_roi_name_npa=row_roi_name_npa,
@@ -92,10 +97,17 @@ def main():
                                   input_csv_path=input_csv_path)
 
     if verbose:
-        print("Calling Louvain".format(runs))
-        start = time.time()
+        print("Preparing Louvain arguments...")
 
-    # CALL LOUVAIN
+    # call multithreaded louvain
+    # first create argument list
+    map_arg_lst = [(None, None)] * runs
+    for idx in xrange(runs):
+        map_arg_lst[idx] = (connectivity_matrix_npa, gamma)
+
+    if verbose:
+        print("done")
+
     # generate louvain run arr dict, format
     # [ { 'run' : run_index + 1,
     #     'num_communities' : len(community_structure_dict.keys(),
@@ -103,28 +115,27 @@ def main():
     #     'gamma' : gamma   # redundant but that's better than the alternative
     #     'community_structure' : community_structure_dict}, ... ]
     louvain_run_arr_dict = []
-    for run_index in xrange(runs):
 
-        if run_index == 0:
-            pct_str = "\r{0:0.2f}% complete... ".\
-                format((float(run_index)/float(runs))*100.0)
-            iter_start = time.time()
+    # call louvain
+    #  first make threads
+    pool = ThreadPool(num_slots)
+    if verbose:
+        print("Calling Louvain with {} threads...".format(num_slots))
+        start = time.time()
 
-        elif run_index == 1:
-            iter_stop = time.time()
-            pct_str = "\r{:0.2f}% complete... ETC {:0.2f}s".\
-                format((float(run_index)/float(runs))*100.0,
-                       (runs - run_index) * (iter_stop-iter_start))
+    # map results in parallel
+    map_results = pool.map(modularity_louvain_dir_wrapper, map_arg_lst)
 
-        else:
-            pct_str = "\r{:0.2f}% complete... ETC {:0.2f}s".\
-                format((float(run_index)/float(runs))*100.0,
-                       (runs - run_index) * (iter_stop-iter_start))
-        print(pct_str, end='')
-        sys.stdout.flush()
+    # wait for work to finish
+    pool.close()
+    pool.join()
 
-        (ci, q) = bct.modularity_louvain_dir(W=connectivity_matrix_npa,
-                                             gamma=gamma)
+    if verbose:
+        print("done in {:.02}s".format(time.time() - start))
+
+    # march through results and write to CSV
+    for result_idx, map_result in enumerate(map_results):
+        (ci, q) = map_result
 
         assert len(ci) == roi_name_npa.size,\
             "Uh-oh, found commmunities don't make sense"
@@ -135,16 +146,12 @@ def main():
 
         # create wrapper dict for community structure dict
         louvain_run_dict = cic_utils.build_louvain_run_dict(
-            run_index=run_index,
+            run_index=result_idx,
             q=q,
             community_structure_dict=community_structure_dict,
             gamma=gamma)
 
         louvain_run_arr_dict.append(louvain_run_dict)
-    pct_str = "\r{0:0.2f}% complete                        ".format(100)
-    print(pct_str)
-    if verbose:
-        print("done in {:.02}s".format(time.time() - start))
 
     # WRITE LOUVAIN TO OUTPUT CSV
     # write louvain_run_arr_dict to output_csv_path
@@ -170,6 +177,10 @@ def main():
         if verbose:
             print("Wrote pickle args to {}".format(output_pickle_path))
         pickle.dump(args, open(output_pickle_path, "wb"))
+
+
+def modularity_louvain_dir_wrapper(args):
+    return bct.modularity_louvain_dir(*args)
 
 
 if __name__ == "__main__":
