@@ -103,7 +103,7 @@ def main():
     # first create argument list
     map_arg_lst = [(None, None)] * runs
     for idx in xrange(runs):
-        map_arg_lst[idx] = (connectivity_matrix_npa, gamma)
+        map_arg_lst[idx] = (connectivity_matrix_npa, gamma, verbose)
 
     if verbose:
         print("done")
@@ -131,7 +131,7 @@ def main():
     pool.join()
 
     if verbose:
-        print("done in {:.02}s".format(time.time() - start))
+        print("done in {:0.06}s".format(time.time() - start))
 
     # march through results and write to CSV
     for result_idx, map_result in enumerate(map_results):
@@ -180,7 +180,12 @@ def main():
 
 
 def modularity_louvain_dir_wrapper(args):
-    return bct.modularity_louvain_dir(*args)
+    # if verbose
+    if args[2]:
+        print("calling modularity louvain dir at {}".format(
+            time.strftime("%H:%M:%S", time.gmtime())))
+    no_verbose_args = args[0:2]
+    return bct.modularity_louvain_dir(*no_verbose_args)
 
 
 if __name__ == "__main__":
