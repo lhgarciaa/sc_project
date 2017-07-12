@@ -198,7 +198,9 @@ def modularity_louvain_dir_wrapper(args):
             time.strftime("%H:%M:%S", time.gmtime())))
         p = psutil.Process()
         print("PID {}".format(p.pid))
-        print("CPU affinity {}".format(p.cpu_affinity()))
+        print("original CPU affinity {}".format(p.cpu_affinity()))
+        p.cpu_affinity(range(psutil.cpu_count()))
+        print("new CPU affinity {}".format(p.cpu_affinity()))
     no_verbose_args = args[0:2]
     return bct.modularity_louvain_dir(*no_verbose_args)
 
