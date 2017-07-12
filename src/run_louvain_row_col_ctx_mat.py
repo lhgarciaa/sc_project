@@ -105,7 +105,7 @@ def main():
     # first create argument list
     map_arg_lst = [(None, None)] * runs
     for idx in xrange(runs):
-        map_arg_lst[idx] = (connectivity_matrix_npa, gamma, verbose)
+        map_arg_lst[idx] = (connectivity_matrix_npa, gamma, verbose, num_slots)
 
     if verbose:
         print("done")
@@ -193,16 +193,21 @@ def main():
 
 def modularity_louvain_dir_wrapper(args):
     # if verbose
-    if args[2]:
+    verbose = args[2]
+    num_slots = args[3]
+    p = psutil.Process()
+    if verbose:
         print("calling modularity louvain dir at {}".format(
             time.strftime("%H:%M:%S", time.gmtime())))
-        p = psutil.Process()
         print("PID {}".format(p.pid))
         print("original CPU affinity {}".format(p.cpu_affinity()))
-        p.cpu_affinity(range(psutil.cpu_count()))
+
+    p.cpu_affinity(range(num_slots))
+    if verbose:
         print("new CPU affinity {}".format(p.cpu_affinity()))
-    no_verbose_args = args[0:2]
-    return bct.modularity_louvain_dir(*no_verbose_args)
+
+    only_mod_args = args[0:2]
+    return bct.modularity_louvain_dir(*only_mod_args)
 
 
 if __name__ == "__main__":
