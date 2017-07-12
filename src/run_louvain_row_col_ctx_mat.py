@@ -8,7 +8,8 @@ import cPickle as pickle
 import cic_utils
 import bct
 import time
-from multiprocessing.dummy import Pool as ThreadPool
+import psutil
+from multiprocessing import Pool as ThreadPool
 
 
 def main():
@@ -62,6 +63,7 @@ def main():
         print("{}".format(time.strftime("%m-%d-%Y %H:%M:%S", time.gmtime())))
         print("running louvain {} times using {} slots with gamma {}\non {}".
               format(runs, num_slots, gamma, input_csv_path))
+        print("{} CPUs available".format(psutil.cpu_count()))
 
     # double check formatting, shape of array
     if cic_utils.is_sq(row_roi_name_npa=row_roi_name_npa,
@@ -120,7 +122,7 @@ def main():
     #  first make threads
     pool = ThreadPool(num_slots)
     if verbose:
-        print("Calling Louvain with {} threads...".format(num_slots))
+        print("Calling Louvain with {} processes...".format(num_slots))
         start = time.time()
 
     # map results in parallel
@@ -184,6 +186,9 @@ def modularity_louvain_dir_wrapper(args):
     if args[2]:
         print("calling modularity louvain dir at {}".format(
             time.strftime("%H:%M:%S", time.gmtime())))
+        p = psutil.Process()
+        print("PID {}".format(p.pid))
+        print("CPU affinity {}".format(p.cpu_affinity()))
     no_verbose_args = args[0:2]
     return bct.modularity_louvain_dir(*no_verbose_args)
 
