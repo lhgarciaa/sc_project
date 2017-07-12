@@ -186,6 +186,10 @@ def main():
             print("Wrote pickle args to {}".format(output_pickle_path))
         pickle.dump(args, open(output_pickle_path, "wb"))
 
+    if verbose:
+        print("done at {}".format(
+            time.strftime("%m-%d-%Y %H:%M:%S", time.gmtime())))
+
 
 def modularity_louvain_dir_wrapper(args):
     # if verbose
