@@ -9,7 +9,7 @@ import cic_utils
 import bct
 import time
 import psutil
-from multiprocessing import Pool as ThreadPool
+from multiprocessing import Pool
 
 
 def main():
@@ -120,7 +120,12 @@ def main():
 
     # call louvain
     #  first make threads
-    pool = ThreadPool(num_slots)
+    if verbose:
+        print("Getting process pool...")
+    pool = Pool(num_slots)
+    if verbose:
+        print("done")
+
     if verbose:
         print("Calling Louvain with {} processes...".format(num_slots))
         start = time.time()
