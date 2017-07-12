@@ -119,7 +119,7 @@ def main():
     louvain_run_arr_dict = []
 
     # call louvain
-    #  first make threads
+    #  first make process pool
     if verbose:
         print("Getting process pool...")
     pool = Pool(num_slots)
@@ -131,7 +131,8 @@ def main():
         start = time.time()
 
     # map results in parallel
-    map_results = pool.map(modularity_louvain_dir_wrapper, map_arg_lst)
+    map_results = pool.imap_unordered(modularity_louvain_dir_wrapper,
+                                      map_arg_lst)
 
     # wait for work to finish
     pool.close()
