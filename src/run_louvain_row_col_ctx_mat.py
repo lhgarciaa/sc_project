@@ -9,6 +9,7 @@ import cic_utils
 import bct
 import time
 import psutil
+import fcntl
 from multiprocessing import Pool
 
 
@@ -118,25 +119,34 @@ def main():
     #     'community_structure' : community_structure_dict}, ... ]
     louvain_run_arr_dict = []
 
-    # call louvain
-    #  first make process pool
-    if verbose:
-        print("Getting process pool...")
-    pool = Pool(num_slots)
-    if verbose:
-        print("done")
-
     if verbose:
         print("Calling Louvain with {} processes...".format(num_slots))
         start = time.time()
 
-    # map results in parallel
-    map_results = pool.imap_unordered(modularity_louvain_dir_wrapper,
-                                      map_arg_lst)
+    map_results = []
+    # call louvain
+    # only do multi process thing if greater than 1 thread
+    if num_slots > 1:
+        #  first make process pool
+        if verbose:
+            print("Getting process pool...")
+        pool = Pool(num_slots)
+        if verbose:
+            print("done")
 
-    # wait for work to finish
-    pool.close()
-    pool.join()
+        # map results in parallel
+        map_results = pool.imap_unordered(modularity_louvain_dir_wrapper,
+                                          map_arg_lst)
+
+        # wait for work to finish
+        pool.close()
+        pool.join()
+
+    # otherwise, use single process for call
+    else:
+        for map_arg in map_arg_lst:
+            map_results.append(bct.modularity_louvain_dir(map_arg[0],
+                                                          map_arg[1]))
 
     if verbose:
         print("done in {:0.06}s".format(time.time() - start))
@@ -162,29 +172,37 @@ def main():
         louvain_run_arr_dict.append(louvain_run_dict)
 
     # WRITE LOUVAIN TO OUTPUT CSV
+    key_index_arr = sorted(
+            louvain_run_arr_dict[0].keys(), reverse=True)
     # write louvain_run_arr_dict to output_csv_path
     assert len(louvain_run_arr_dict) > 0,\
         "Your louvain run ain't got no results bro"  # reasonable assumption
-    with open(output_csv_path, 'wb') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        # create key index automatically
-        key_index_arr = sorted(louvain_run_arr_dict[0].keys(), reverse=True)
-        csvwriter.writerow(key_index_arr)
 
+    if not os.path.isfile(output_csv_path):
+        with open(output_csv_path, 'wb') as csvfile:
+            fcntl.flock(csvfile, fcntl.LOCK_EX)
+            csvwriter = csv.writer(csvfile)
+            # create key index automatically
+            csvwriter.writerow(key_index_arr)
+            fcntl.flock(csvfile, fcntl.LOCK_UN)
+
+    with open(output_csv_path, 'a') as csvfile:
+        fcntl.flock(csvfile, fcntl.LOCK_EX)
+        csvwriter = csv.writer(csvfile)
         for m in louvain_run_arr_dict:
             map_val_arr = []
             # follow keys defined in key_index_arr
             for key in key_index_arr:
                 map_val_arr.append(m[key])
-
             csvwriter.writerow(map_val_arr)
+        fcntl.flock(csvfile, fcntl.LOCK_UN)
 
-        print("Wrote Louvain results to {}".format(output_csv_path))
+    print("Wrote Louvain results to {}".format(output_csv_path))
 
-        output_pickle_path = cic_utils.pickle_path(output_csv_path)
-        if verbose:
-            print("Wrote pickle args to {}".format(output_pickle_path))
-        pickle.dump(args, open(output_pickle_path, "wb"))
+    output_pickle_path = cic_utils.pickle_path(output_csv_path)
+    pickle.dump(args, open(output_pickle_path, "wb"))
+    if verbose:
+        print("Wrote pickle args to {}".format(output_pickle_path))
 
     if verbose:
         print("done at {}".format(
@@ -200,9 +218,11 @@ def modularity_louvain_dir_wrapper(args):
         print("calling modularity louvain dir at {}".format(
             time.strftime("%H:%M:%S", time.gmtime())))
         print("PID {}".format(p.pid))
+        print("NUM SLOTS {}".format(num_slots))
+        print("NUM CPUs {}".format(psutil.cpu_count()))
         print("original CPU affinity {}".format(p.cpu_affinity()))
 
-    p.cpu_affinity(range(num_slots))
+    p.cpu_affinity(range(psutil.cpu_count()))
     if verbose:
         print("new CPU affinity {}".format(p.cpu_affinity()))
 
