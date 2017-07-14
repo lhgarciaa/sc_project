@@ -21,6 +21,9 @@ def main():
                         help='Input, labeled row source, column destination '
                         'annotation CSV',
                         required=True)
+    parser.add_argument('-o', '--output_csv',
+                        help='Output path for connectivity matrix csv',
+                        required=True)
     parser.add_argument('-g', '--gamma', help='Louvain gamma value',
                         required=True)
     parser.add_argument('-r', '--runs', help='Number of times to run Louvain',
@@ -34,6 +37,9 @@ def main():
     parser.add_argument('-ns', '--num_slots',
                         help='Number of slots to use for SMP',
                         type=int, default=1)
+    parser.add_argument('-wh', '--write_header',
+                        help='Write header to file before first line(s)',
+                        action="store_true")
 
     args = vars(parser.parse_args())
 
@@ -42,9 +48,7 @@ def main():
     runs = int(args['runs'])
     verbose = args['verbose']
     input_csv_path = args['input_csv']
-    name_of_study = input_csv_path.replace(".csv", "")
-    output_csv_path = "{}_gamma-{:.2f}_runs-{:04d}.csv".\
-        format(name_of_study, gamma, runs)
+    output_csv_path = args['output_csv']
     print_output_path = args['print_output_path']
     if print_output_path:
         print("{}".format(output_csv_path))
@@ -55,6 +59,7 @@ def main():
         "can't find input csv file {}".format(input_csv_path)
 
     num_slots = args['num_slots']
+    write_header = args['write_header']
 
     # OPEN, READ INPUT CSV
     (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
@@ -178,24 +183,40 @@ def main():
     assert len(louvain_run_arr_dict) > 0,\
         "Your louvain run ain't got no results bro"  # reasonable assumption
 
-    if not os.path.isfile(output_csv_path):
+    if write_header:
+        print("writing header and louvain results...")
         with open(output_csv_path, 'wb') as csvfile:
             fcntl.flock(csvfile, fcntl.LOCK_EX)
             csvwriter = csv.writer(csvfile)
             # create key index automatically
             csvwriter.writerow(key_index_arr)
+            for m in louvain_run_arr_dict:
+                map_val_arr = []
+                # follow keys defined in key_index_arr
+                for key in key_index_arr:
+                    map_val_arr.append(m[key])
+                csvwriter.writerow(map_val_arr)
             fcntl.flock(csvfile, fcntl.LOCK_UN)
+        print("done")
 
-    with open(output_csv_path, 'a') as csvfile:
-        fcntl.flock(csvfile, fcntl.LOCK_EX)
-        csvwriter = csv.writer(csvfile)
-        for m in louvain_run_arr_dict:
-            map_val_arr = []
-            # follow keys defined in key_index_arr
-            for key in key_index_arr:
-                map_val_arr.append(m[key])
-            csvwriter.writerow(map_val_arr)
-        fcntl.flock(csvfile, fcntl.LOCK_UN)
+    else:
+        while not os.path.isfile(output_csv_path):
+            sleep_time = 10
+            print("waiting for creation of {} for {}s".format(
+                output_csv_path, sleep_time))
+            time.sleep(sleep_time)
+
+        print("appending louvain results")
+        with open(output_csv_path, 'a') as csvfile:
+            fcntl.flock(csvfile, fcntl.LOCK_EX)
+            csvwriter = csv.writer(csvfile)
+            for m in louvain_run_arr_dict:
+                map_val_arr = []
+                # follow keys defined in key_index_arr
+                for key in key_index_arr:
+                    map_val_arr.append(m[key])
+                csvwriter.writerow(map_val_arr)
+            fcntl.flock(csvfile, fcntl.LOCK_UN)
 
     print("Wrote Louvain results to {}".format(output_csv_path))
 

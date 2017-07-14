@@ -19,7 +19,7 @@ name_base=`basename $row_column_input_csv` # for output file
 gamma=$min_gamma;
 while (( $(echo "$gamma <= $max_gamma" | bc -l) )); do
     print_gamma=`printf "%.2f" $gamma`
-    log_name_base=$logs_dir/louvain-$num_runs-$print_gamma-$name_base    
+    log_name_base=$logs_dir/mod-${print_gamma}_runs-${num_runs}_${name_base}
     qsub -cwd -t 1-$num_runs -o $log_name_base.out -e $log_name_base.err -q compute.q src/qsub_run_louvain_row_col_ctx_mat.sh $row_column_input_csv $gamma $num_runs $venv_dir
     gamma=$(echo "$gamma + $gamma_inc" | bc);
 done;
