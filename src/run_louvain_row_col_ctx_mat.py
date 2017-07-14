@@ -9,8 +9,8 @@ import cic_utils
 import bct
 import time
 import psutil
-import fcntl
 from multiprocessing import Pool
+from filelock import FileLock
 
 
 def main():
@@ -184,20 +184,19 @@ def main():
         "Your louvain run ain't got no results bro"  # reasonable assumption
 
     if write_header:
-        print("writing header and louvain results...")
-        with open(output_csv_path, 'wb') as csvfile:
-            fcntl.flock(csvfile, fcntl.LOCK_EX)
-            csvwriter = csv.writer(csvfile)
-            # create key index automatically
-            csvwriter.writerow(key_index_arr)
-            for m in louvain_run_arr_dict:
-                map_val_arr = []
-                # follow keys defined in key_index_arr
-                for key in key_index_arr:
-                    map_val_arr.append(m[key])
-                csvwriter.writerow(map_val_arr)
-            fcntl.flock(csvfile, fcntl.LOCK_UN)
-        print("done")
+        with FileLock(output_csv_path):
+            print("writing header and louvain results...")
+            with open(output_csv_path, 'wb') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                # create key index automatically
+                csvwriter.writerow(key_index_arr)
+                for m in louvain_run_arr_dict:
+                    map_val_arr = []
+                    # follow keys defined in key_index_arr
+                    for key in key_index_arr:
+                        map_val_arr.append(m[key])
+                    csvwriter.writerow(map_val_arr)
+            print("done writing header and louvain results")
 
     else:
         while not os.path.isfile(output_csv_path):
@@ -206,17 +205,17 @@ def main():
                 output_csv_path, sleep_time))
             time.sleep(sleep_time)
 
-        print("appending louvain results")
-        with open(output_csv_path, 'a') as csvfile:
-            fcntl.flock(csvfile, fcntl.LOCK_EX)
-            csvwriter = csv.writer(csvfile)
-            for m in louvain_run_arr_dict:
-                map_val_arr = []
-                # follow keys defined in key_index_arr
-                for key in key_index_arr:
-                    map_val_arr.append(m[key])
-                csvwriter.writerow(map_val_arr)
-            fcntl.flock(csvfile, fcntl.LOCK_UN)
+        with FileLock(output_csv_path):
+            print("appending louvain results...")
+            with open(output_csv_path, 'a') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                for m in louvain_run_arr_dict:
+                    map_val_arr = []
+                    # follow keys defined in key_index_arr
+                    for key in key_index_arr:
+                        map_val_arr.append(m[key])
+                    csvwriter.writerow(map_val_arr)
+            print("done appending louvain results")
 
     print("Wrote Louvain results to {}".format(output_csv_path))
 

@@ -15,7 +15,7 @@ venv_dir=$6;
 
 logs_dir=qsub_logs
 mkdir -p $logs_dir # prepare logs file if it doesn't already exist
-name_base=`basename $row_column_input_csv` # for output file
+
 gamma=$min_gamma;
 while (( $(echo "$gamma <= $max_gamma" | bc -l) )); do
     print_gamma=`printf "%.2f" $gamma`
