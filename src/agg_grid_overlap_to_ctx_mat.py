@@ -23,8 +23,8 @@ def main():
     parser.add_argument('-hemi', '--hemisphere_of_interest',
                         help='exclusively include listed hemisphere in output')
     parser.add_argument('-es', '--exclude_sections',
-                        help='List of sections to exclude from ctx mat e.g.\n'
-                        '-es 1_09 1_10',
+                        help='List of case:section tuples to exclude from '
+                        'ctx mat e.g. -es SW130212-02A:1_09 SW160212-02A:1_10',
                         nargs='+')
     parser.add_argument('-v', '--verbose',
                         help='Print extra information about conversion',
@@ -82,8 +82,9 @@ def main():
         overlap_format = row[agg_overlap_csv_header.index(
             'Overlap Format')]
         tracer = row[agg_overlap_csv_header.index('Tracer')]
-        # get section in case exclude_sections list provided
+        # get section and case in event exclude_sections list provided
         section = row[agg_overlap_csv_header.index('Slide Number')]
+        case = row[agg_overlap_csv_header.index('Case Name')]
 
         # assert these are always the same
         #   Atlas Name, Atlas Version, Channel Number, Grid Size, Overlap
@@ -140,7 +141,9 @@ def main():
 
         # only make and add lbl to dct if hemi of interest or not checking hemi
         if (not check_hemi or hemi == hemisphere_of_interest) and \
-           (not exclude_sections or section not in exclude_sections):
+           (not exclude_sections or
+                "{}:{}".format(case, section) not in exclude_sections):
+            # first make (ara_level:hemi:col:row) cell label
             cell_lbl = "({}:{})".format(ara_level, hemi_col_row.
                                         replace('(', '').replace(')', ''))
 
