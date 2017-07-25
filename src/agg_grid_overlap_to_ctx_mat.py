@@ -178,8 +178,9 @@ def main():
         for inj_site_lbl in inj_site_lbls:
             cols = [inj_site_lbl]
             for cell_lbl in cell_lbls[1:len(cell_lbls)]:
-                overlap_tup = inj_site_overlap_dcts[inj_site_lbl][cell_lbl]
-                if len(overlap_tup) > 0:
+                # do get to make sure cell_lbl exists for given injection site
+                overlap_tup = inj_site_overlap_dcts[inj_site_lbl].get(cell_lbl)
+                if overlap_tup is not None and len(overlap_tup) > 0:
                     assert len(overlap_tup) == 2, \
                         "overlap tup: {}".format(overlap_tup)
                     grid_only = overlap_tup[0]
