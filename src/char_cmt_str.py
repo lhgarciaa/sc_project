@@ -9,6 +9,8 @@ import cic_utils
 import cic_ms
 import sys
 
+csv.field_size_limit(sys.maxsize)  # let's rock
+
 
 def main():
     parser = argparse.ArgumentParser(description="Characterize repeated runs "
@@ -30,6 +32,8 @@ def main():
         "can't find input csv file {}".format(input_csv_path)
     display_header = args['header']
     verbose = args['verbose']
+
+
 
     # parse input csv into louvain run arr dict, all values are strings
     # [ { 'run' : run
