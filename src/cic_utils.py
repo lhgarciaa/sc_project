@@ -3,6 +3,7 @@ import os
 import sys
 import csv
 import numpy as np
+import ast
 
 
 def pickle_path(input_path):
@@ -188,3 +189,60 @@ def build_louvain_run_dict(run_index, q, community_structure_dict, gamma):
             'num_communities': len(community_structure_dict.keys()),
             'gamma': gamma,
             'community_structure': community_structure_dict}
+
+
+def read_louvain_run_arr_dict(input_csv_path):
+    louvain_run_arr_dict = []
+
+    with open(input_csv_path, 'rb') as csvfile:
+        csvreader = csv.reader(csvfile)
+        # extract community structure
+        key_index_arr = []
+        for row_index, row in enumerate(csvreader):
+
+            # if first row, get key header
+            if row_index == 0:
+                key_index_arr = [x.strip() for x in row]
+
+            # build dict and append to dict list
+            else:
+                vals_row = [x.strip() for x in row]
+
+                louvain_run_dict = parse_louvain_run_dict(
+                    vals_row=vals_row,
+                    key_index_arr=key_index_arr
+                )
+                louvain_run_arr_dict.append(louvain_run_dict)
+
+    return louvain_run_arr_dict
+
+
+# replaces frozenset in string since can't perform an ast.liveral eval of that
+def parse_louvain_run_dict(key_index_arr, vals_row):
+    assert len(key_index_arr) == len(vals_row), \
+        "length of {}\n ({}) != \nlength of {} ({})".format(
+            key_index_arr,
+            len(key_index_arr),
+            vals_row,
+            len(vals_row))
+
+    # create dict of strings here, then convert when necessary
+    louvain_run_dict = {}
+    for index in xrange(len(key_index_arr)):
+        if len(key_index_arr[index]) > 0:
+            # try literal eval, then eval, then regular string assignment
+            try:
+                louvain_run_dict[key_index_arr[index]] = \
+                        ast.literal_eval(vals_row[index])
+            except ValueError:
+                try:
+                    louvain_run_dict[key_index_arr[index]] = eval(
+                        vals_row[index])
+                except (NameError, ValueError):
+                    louvain_run_dict[key_index_arr[index]] = vals_row[index]
+    return louvain_run_dict
+
+
+# convenience method since no flatten provided out of the box
+def flatten(lst):
+    return [item for sublist in lst for item in sublist]

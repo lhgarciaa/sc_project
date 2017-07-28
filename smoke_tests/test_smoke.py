@@ -31,7 +31,8 @@ class RunSmokeTests(unittest.TestCase):
                     cmd_dct_lst.append(cmd_dct)
 
         # go through each command, verify it generates output path as expected
-        for cmd_dct in cmd_dct_lst:
+        for cmd_dct in [dct for dct in cmd_dct_lst
+                        if dct['COMMAND'][0] != '#']:  # skip comment commands
             # execute the command
             # note, security risk with shell=True if third-party test execution
             start = time.time()
