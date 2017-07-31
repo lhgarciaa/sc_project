@@ -33,8 +33,6 @@ def main():
     display_header = args['header']
     verbose = args['verbose']
 
-
-
     # parse input csv into louvain run arr dict, all values are strings
     # [ { 'run' : run
     #     'num_communities' : num_communities
