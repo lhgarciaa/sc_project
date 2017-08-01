@@ -49,8 +49,11 @@ def w_alpha_beta(roi_name_lst, alpha_fs_lst, beta_fs_lst, res_dct):
 
 # returns a tuple:
 #  (mean_z_score_rand_coef, var_z_score_rand_coef)
+# returns (inf, nan) if std_w_alpha_beta is 0
 def calc_mean_var_z_alpha_beta(roi_name_lst, std_w_alpha_beta, cmt_str_lst_lst,
                                M, res_dct):
+    if std_w_alpha_beta == 0:
+        return (float('Inf'), float('NaN'))
     z_alpha_beta_vals = np.array([])
     num_vals = n_choose_2(len(cmt_str_lst_lst))
     z_alpha_beta_vals.resize(num_vals)

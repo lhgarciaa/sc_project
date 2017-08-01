@@ -78,7 +78,10 @@ def main():
         roi_name_lst=roi_name_lst, cmt_str_lst_lst=cmt_str_lst_lst,
         res_dct=res_dct)
     if verbose:
-        print("done in {}s".format(time.time()-start))
+        print("done in {}s: {}".format(
+            time.time()-start,
+            std_dev_w_alpha_beta)
+        )
 
     if verbose:
         print("calculating mean_var_z_alpha_beta...")
@@ -90,7 +93,10 @@ def main():
         M=cic_ms.n_choose_2(len(cmt_str_lst_lst)),
         res_dct=res_dct)
     if verbose:
-        print("done in {}s".format(time.time()-start))
+        print("done in {}s: {}".format(
+            time.time()-start,
+            mean_var)
+        )
 
     qmax_cmt_str = []
     for run in louvain_run_arr_dict:
@@ -101,12 +107,17 @@ def main():
     if verbose:
         print("calculating cons_cmt_str...")
         start = time.time()
-    cons_cmt_str = cic_ms.calc_cons_cmt_str(
-        roi_name_lst=roi_name_lst,
-        cmt_str_lst_lst=cmt_str_lst_lst,
-        gamma=louvain_run_arr_dict[0]['gamma'],
-        runs=num_runs,
-        tau=0.1)
+    if std_dev_w_alpha_beta == 0 or mean_var == float('Inf'):
+        if verbose:
+            print("No st.dev, returning arbitrary cmt str as consensus")
+        cons_cmt_str = cmt_str_lst_lst[0]
+    else:
+        cons_cmt_str = cic_ms.calc_cons_cmt_str(
+            roi_name_lst=roi_name_lst,
+            cmt_str_lst_lst=cmt_str_lst_lst,
+            gamma=louvain_run_arr_dict[0]['gamma'],
+            runs=num_runs,
+            tau=0.1)
     if verbose:
         print("done in {}s".format(time.time()-start))
 
