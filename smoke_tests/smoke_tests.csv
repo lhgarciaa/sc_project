@@ -10,11 +10,13 @@ python src/agg_grid_overlap_to_ctx_mat.py -i test_data/test_agg_overlap_csv.csv 
 python src/agg_grid_overlap_to_ctx_mat.py -hemi r -i test_data/test_agg_overlap_csv.csv -o smoke_tests/right_hemi_agg_overlap_to_ctx_mat.csv, smoke_tests/right_hemi_agg_overlap_to_ctx_mat.csv, smoke_tests/exp_right_hemi_agg_overlap_to_ctx_mat.csv
 # test convert aggregated grid overlap to ctx mat EXCLUDING SECTIONS
 python src/agg_grid_overlap_to_ctx_mat.py -hemi r -es  SW140212-02A:1_09 SW130212-02A:1_10 -i test_data/test_agg_overlap_csv.csv -o smoke_tests/no-1_09-1_10_right_hemi_agg_overlap_to_ctx_mat.csv, smoke_tests/no-1_09-1_10_right_hemi_agg_overlap_to_ctx_mat.csv, smoke_tests/exp_no-1_09-1_10_right_hemi_agg_overlap_to_ctx_mat.csv
-# test RUN LOUVAIN 10x
+# test RUN SIMPLE LOUVAIN 10x
+python src/run_louvain_row_col_ctx_mat.py -wh -i ../../mike/HGAA/test_data/simple_dir_row_col_mat_hippo_to_hippo.csv -g 100 -r 10 -o smoke_tests/simple_dir_row_col_mat_gamma-100_runs-0010.csv, smoke_tests/simple_dir_row_col_mat_gamma-100_runs-0010.csv, smoke_tests/exp_simple_dir_row_col_mat_gamma-100_runs-0010.csv
+# test RUN GRID LOUVAIN 10x
 python src/run_louvain_row_col_ctx_mat.py -wh -i test_data/test_agg_overlap_to_ctx_mat.csv -g 0.01 -r 10 -o smoke_tests/test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0010.csv, smoke_tests/test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0010.csv, smoke_tests/exp_test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0010.csv
-# test RUN LOUVAIN 50x
+# test RUN GRID LOUVAIN 50x
 python src/run_louvain_row_col_ctx_mat.py -wh -i test_data/test_agg_overlap_to_ctx_mat.csv -g 0.01 -r 50 -o smoke_tests/test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv, smoke_tests/test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv, smoke_tests/exp_test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv
-# test run louvain 50x 16 SLOTS
+# test run grid louvain 50x 16 SLOTS
 python src/run_louvain_row_col_ctx_mat.py -wh -i test_data/test_agg_overlap_to_ctx_mat.csv -g 0.01 -r 50 -ns 16 -o smoke_tests/test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv, smoke_tests/test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv, smoke_tests/exp_test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv
 # test CHARACTERIZE COMMUNITY STRUCTURE 
 python src/char_cmt_str.py -H -i test_data/simple_dir_row_col_mat_gamma-1.00_runs-0010.csv > smoke_tests/char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv, smoke_tests/char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv, smoke_tests/exp_char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv
