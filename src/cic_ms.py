@@ -116,13 +116,31 @@ def w_alpha_beta(roi_name_lst, alpha, beta, res_dct):
 def pair_in_alpha_beta(roi_name_a, roi_name_b, alpha, beta):
     in_alpha = False
     for fs_fs in alpha:
-        if roi_name_a in fs_fs and roi_name_b in fs_fs:
+        roi_name_a_in = roi_name_a in fs_fs
+        roi_name_b_in = roi_name_b in fs_fs
+
+        if roi_name_a_in and not roi_name_b_in:
+            in_alpha = False
+            break
+        elif not roi_name_a_in and roi_name_b_in:
+            in_alpha = False
+            break
+        elif roi_name_a_in and roi_name_b_in:
             in_alpha = True
             break
 
     in_beta = False
     for fs_fs in beta:
-        if roi_name_a in fs_fs and roi_name_b in fs_fs:
+        roi_name_a_in = roi_name_a in fs_fs
+        roi_name_b_in = roi_name_b in fs_fs
+
+        if roi_name_a_in and not roi_name_b_in:
+            in_beta = False
+            break
+        elif not roi_name_a_in and roi_name_b_in:
+            in_beta = False
+            break
+        elif roi_name_a_in and roi_name_b_in:
             in_beta = True
             break
 
