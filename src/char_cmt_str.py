@@ -49,7 +49,7 @@ def main():
 
     # make set of sets from each community_structure and tally count of each
     com_cnt_dict = {}  # { community_structure_set_of_sets : count }
-    cmt_str_lst_lst = []  # community structure list, list
+    cmt_str_lst_fs_fs = []  # community structure list, list
     roi_name_lst = []
     for run in louvain_run_arr_dict:
         if len(roi_name_lst) == 0:
@@ -57,7 +57,7 @@ def main():
                 cic_utils.flatten(run['community_structure'].values()))
 
         cmt_str_lst = run['community_structure'].values()
-        cmt_str_lst_lst.append(cmt_str_lst)
+        cmt_str_lst_fs_fs.append(cic_ms.lst_lst_to_fs_fs(cmt_str_lst))
         set_of_sets = frozenset([frozenset(x) for x in cmt_str_lst])
         cnt = com_cnt_dict.get(set_of_sets, 0)
         com_cnt_dict[set_of_sets] = cnt + 1
@@ -75,7 +75,7 @@ def main():
         import time
         start = time.time()
     std_dev_w_alpha_beta = cic_ms.calc_std_w_alpha_beta(
-        roi_name_lst=roi_name_lst, cmt_str_lst_lst=cmt_str_lst_lst,
+        roi_name_lst=roi_name_lst, cmt_str_lst_fs_fs=cmt_str_lst_fs_fs,
         res_dct=res_dct)
     if verbose:
         print("done in {}s: {}".format(
@@ -89,8 +89,8 @@ def main():
     mean_var = cic_ms.calc_mean_var_z_alpha_beta(
         roi_name_lst=roi_name_lst,
         std_w_alpha_beta=std_dev_w_alpha_beta,
-        cmt_str_lst_lst=cmt_str_lst_lst,
-        M=cic_ms.n_choose_2(len(cmt_str_lst_lst)),
+        cmt_str_lst_fs_fs=cmt_str_lst_fs_fs,
+        M=cic_ms.n_choose_2(len(cmt_str_lst_fs_fs)),
         res_dct=res_dct)
     if verbose:
         print("done in {}s: {}".format(
@@ -110,11 +110,11 @@ def main():
     if std_dev_w_alpha_beta == 0 or mean_var == float('Inf'):
         if verbose:
             print("No st.dev, returning arbitrary cmt str as consensus")
-        cons_cmt_str = cmt_str_lst_lst[0]
+        cons_cmt_str = next(iter(cmt_str_lst_fs_fs))
     else:
         cons_cmt_str = cic_ms.calc_cons_cmt_str(
             roi_name_lst=roi_name_lst,
-            cmt_str_lst_lst=cmt_str_lst_lst,
+            cmt_str_lst_lst=cic_ms.lst_fs_fs_to_lst_lst_lst(cmt_str_lst_fs_fs),
             gamma=louvain_run_arr_dict[0]['gamma'],
             runs=num_runs,
             tau=0.1)
