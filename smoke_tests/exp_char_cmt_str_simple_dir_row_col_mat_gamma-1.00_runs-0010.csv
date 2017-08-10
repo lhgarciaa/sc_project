@@ -1,2 +1,4 @@
-num runs,gamma,mean part sim,var part sim,consensus com str,max num com,mean num com,std dev num com,max q,mean q,std dev,unique com str,com str mode count,qmax com str
-10,1,6.2757163244218885,1.0,"[['A', 'C'], ['B', 'D', 'E'], ['F', 'H'], ['G', 'I']]",5,4.4000000000000004,0.4898979485566356,0.90000000000000002,0.29000000000000004,0.20420577856662137,2/10,6/10,"[['A', 'C'], ['B', 'D', 'E'], ['F', 'H'], ['G', 'I']]"
+num runs,gamma,mean part sim,var part sim,max num com,mean num com,std dev num com,max q,mean q,std dev,unique com str,com str mode count
+10,1,6.2757163244218885,1.0,5,4.4000000000000004,0.4898979485566356,0.90000000000000002,0.29000000000000004,0.20420577856662137,2/10,6/10
+consensus com str:,"[['A', 'C'], ['B', 'D', 'E'], ['F', 'H'], ['G', 'I']]"
+qmax com str:,"[['A', 'C'], ['B', 'D', 'E'], ['F', 'H'], ['G', 'I']]"

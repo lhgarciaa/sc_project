@@ -123,13 +123,13 @@ def main():
 
     assert len(louvain_run_arr_dict) > 0  # reasonable assumption i hope
 
-    # create print dict with these values
+    # create print dict to be written to csv as single row
+    #  note no cmt structure included due to size limitations
     print_dict = {}
     print_dict[(0, 'num runs')] = num_runs
     print_dict[(0.5, 'gamma')] = louvain_run_arr_dict[0]['gamma']
     print_dict[(0.6, 'mean part sim')] = mean_var[0]
     print_dict[(0.7, 'var part sim')] = mean_var[1]
-    print_dict[(0.8, 'consensus com str')] = cons_cmt_str
     print_dict[(1, 'max num com')] = np.max(num_com_npa)
     print_dict[(2, 'mean num com')] = np.mean(num_com_npa)
     print_dict[(3, 'std dev num com')] = np.std(num_com_npa)
@@ -141,7 +141,6 @@ def main():
         num_runs)
     print_dict[(8, 'com str mode count')] = "{}/{}".\
         format(cmt_str_mode_count.tolist(), num_runs)
-    print_dict[(13, 'qmax com str')] = qmax_cmt_str
 
     # write to std out in csv file format
     csvwriter = csv.writer(sys.stdout)
@@ -155,6 +154,16 @@ def main():
     row = []
     for key in sorted(print_dict.keys()):
         row.append(print_dict[key])
+    csvwriter.writerow(row)
+
+    # now write community structure values
+    row = []
+    row.append('consensus com str:')
+    row.append(cons_cmt_str)
+    csvwriter.writerow(row)
+    row = []
+    row.append('qmax com str:')
+    row.append(qmax_cmt_str)
     csvwriter.writerow(row)
 
 
