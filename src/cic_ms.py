@@ -250,12 +250,17 @@ def n_choose_2(num_rois):
            (math.factorial(2) * math.factorial(num_rois - 2)))
 
 
+def fs_fs_to_lst_lst(fs_fs):
+    lst_lst = []
+    for fs in fs_fs:
+        lst_lst.append(list(fs))
+    return lst_lst
+
+
 def lst_fs_fs_to_lst_lst_lst(lst_fs_fs):
     lst_lst_lst = []
     for fs_fs in lst_fs_fs:
-        lst_lst = []
-        for fs in fs_fs:
-            lst_lst.append(list(fs))
+        lst_lst = fs_fs_to_lst_lst(fs_fs)
         lst_lst_lst.append(lst_lst)
     return lst_lst_lst
 

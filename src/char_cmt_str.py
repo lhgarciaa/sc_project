@@ -40,7 +40,19 @@ def main():
     #     'gamma' : gamma   # redundant but that's better than the alternative
     #     'community_structure' : community_structure_dict string}, ... ]
 
+    if verbose:
+        print("Reading Louvain output CSV")
+        import time
+        start = time.time()
     louvain_run_arr_dict = cic_utils.read_louvain_run_arr_dict(input_csv_path)
+
+    if verbose:
+        print("done in {}s".format(time.time()-start))
+
+    if verbose:
+        print("Converting format of read louvain run arr dict")
+        import time
+        start = time.time()
 
     run_npa = np.array([x['run'] for x in louvain_run_arr_dict])
     num_com_npa = np.array(
@@ -62,6 +74,9 @@ def main():
         cnt = com_cnt_dict.get(set_of_sets, 0)
         com_cnt_dict[set_of_sets] = cnt + 1
 
+    if verbose:
+        print("done in {}s".format(time.time()-start))
+
     # calculate a bunch of metrics
     num_runs = np.max(run_npa)
     q_max = np.max(q_npa)
@@ -72,7 +87,6 @@ def main():
     res_dct = {}
     if verbose:
         print("calculating std_dev_w_alpha_beta...")
-        import time
         start = time.time()
     std_dev_w_alpha_beta = cic_ms.calc_std_w_alpha_beta(
         roi_name_lst=roi_name_lst, cmt_str_lst_fs_fs=cmt_str_lst_fs_fs,
@@ -159,7 +173,9 @@ def main():
     # now write community structure values
     row = []
     row.append('consensus com str:')
-    row.append(cons_cmt_str)
+    # convert to lst_lst to save space in csv
+    cons_cmt_str_lst_lst = cic_ms.fs_fs_to_lst_lst(cons_cmt_str)
+    row.append(cons_cmt_str_lst_lst)
     csvwriter.writerow(row)
     row = []
     row.append('qmax com str:')
