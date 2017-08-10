@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # if not N x N will pad
 from __future__ import print_function
 import argparse

@@ -70,7 +70,6 @@ def main():
             GRID_SIZE = int(row[agg_overlap_csv_header.index('Grid Size')])
             OVERLAP_FORMAT = row[agg_overlap_csv_header.index(
                 'Overlap Format')]
-            TRACER = row[agg_overlap_csv_header.index('Tracer')]
 
         # march through rows
         # for assertion
@@ -88,13 +87,17 @@ def main():
 
         # assert these are always the same
         #   Atlas Name, Atlas Version, Channel Number, Grid Size, Overlap
-        # Format, Tracer
+        # Format
         assert atlas_name == ATLAS_NAME
         assert atlas_version == ATLAS_VERSION
         assert channel_number == CHANNEL_NUMBER
         assert grid_size == GRID_SIZE
         assert overlap_format == OVERLAP_FORMAT
-        assert tracer == TRACER
+
+        # set antero or retro mode based on tracer
+        tracer_type = 'antero'  # assume antero
+        if 'ctb' in tracer.lower() or 'fg' in tracer.lower():
+            tracer_type = 'retro'
 
         # moving values
         ara_level = int(row[agg_overlap_csv_header.index('ARA Level')])
@@ -147,23 +150,44 @@ def main():
             cell_lbl = "({}:{})".format(ara_level, hemi_col_row.
                                         replace('(', '').replace(')', ''))
 
+            # TODO change inj_site and other terminology to src vs. dest
             # build labels and dct lst
-            #   cell labels from all (HEMISPHERE:COLUMN:ROWS) values
-            cell_lbl_set = cell_lbl_set.union(frozenset({cell_lbl}))
-
-            #   injection site labels from all Injection Site values
-            inj_site_lbl_set = inj_site_lbl_set.union(frozenset({inj_site}))
+            # if antero
+            if tracer_type == 'antero':
+                # cell labels from all (HEMISPHERE:COLUMN:ROWS) values
+                cell_lbl_set = cell_lbl_set.union(frozenset({cell_lbl}))
+                #   injection site labels from all Injection Site values
+                inj_site_lbl_set = inj_site_lbl_set.union(
+                    frozenset({inj_site}))
+            elif tracer_type == 'retro':
+                # cell labels from all inj_site values
+                cell_lbl_set = cell_lbl_set.union(frozenset({inj_site}))
+                #   injection site labels from all Injection Site values
+                inj_site_lbl_set = inj_site_lbl_set.union(
+                    frozenset({cell_lbl}))
+            else:
+                assert 0, 'Tracer type should either be antro or retro'
 
             #   populate dcts
             #     { 'Injection Site' : '...' {cell_lbl1 : (grid_only,overlap),
             #                                 cell_lbl2 : ...} }
-            inj_site_overlap_dct = \
-                inj_site_overlap_dcts[inj_site]
-            overlap_tup = inj_site_overlap_dct.get(cell_lbl, (0, 0))
-            overlap_tup = tuple(
-                map(lambda x, y: x + y, overlap_tup, (grid_only, overlap)))
+            if tracer_type == 'antero':
+                inj_site_overlap_dct = \
+                                       inj_site_overlap_dcts[inj_site]
+                overlap_tup = inj_site_overlap_dct.get(cell_lbl, (0, 0))
+                overlap_tup = tuple(
+                    map(lambda x, y: x + y, overlap_tup, (grid_only, overlap)))
 
-            inj_site_overlap_dct[cell_lbl] = overlap_tup
+                inj_site_overlap_dct[cell_lbl] = overlap_tup
+
+            else:
+                inj_site_overlap_dct = \
+                                       inj_site_overlap_dcts[cell_lbl]
+                overlap_tup = inj_site_overlap_dct.get(inj_site, (0, 0))
+                overlap_tup = tuple(
+                    map(lambda x, y: x + y, overlap_tup, (grid_only, overlap)))
+
+                inj_site_overlap_dct[inj_site] = overlap_tup
 
         pct_str = "\r{0:0.2f}% complete... ".\
                   format((float(row_idx)/float(len(agg_overlap_rows)))*100.0)
@@ -200,7 +224,12 @@ def main():
 
 def cell_lbl_to_tup(lbl):
     lst = lbl.replace('(', '').replace(')', '').split(':')
-    return tuple([(x == 'r' or x == 'l') and x or int(x) for x in lst])
+    # if grid label
+    if len(lst) > 1:
+        return tuple([(x == 'r' or x == 'l') and x or int(x) for x in lst])
+    # else inj site label
+    else:
+        return tuple(lbl)
 
 
 if __name__ == '__main__':
