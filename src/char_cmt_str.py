@@ -128,7 +128,7 @@ def main():
     else:
         cons_cmt_str = cic_ms.calc_cons_cmt_str(
             roi_name_lst=roi_name_lst,
-            cmt_str_lst_lst=cic_ms.lst_fs_fs_to_lst_lst_lst(cmt_str_lst_fs_fs),
+            cmt_str_lst_fs_fs=cmt_str_lst_fs_fs,
             gamma=louvain_run_arr_dict[0]['gamma'],
             runs=num_runs,
             tau=0.1)

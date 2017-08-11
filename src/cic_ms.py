@@ -109,79 +109,80 @@ def w_alpha_beta(roi_name_lst, alpha, beta, res_dct):
     return res_dct[key]
 
 
+# input
+#  roi_name_a, roi_name_b
+#  alpha: fs_fs community structure e.g. frozenset(frozenset('A', 'B'),
+#                                                  frozenset('C'))
+#  beta:  fs_fs community structure
 # returns
 #  triple of (alpha_only, beta_only, alpha_and_beta)
 #   True if roi_name_a and roi_name_b in community in both alpha and beta
 #   False otherwise
 def pair_in_alpha_beta(roi_name_a, roi_name_b, alpha, beta):
-    in_alpha = False
-    for fs_fs in alpha:
-        roi_name_a_in = roi_name_a in fs_fs
-        roi_name_b_in = roi_name_b in fs_fs
+    in_alpha = pair_in_fs_fs(roi_name_a=roi_name_a,
+                             roi_name_b=roi_name_b,
+                             fs_fs=alpha)
 
-        if roi_name_a_in and not roi_name_b_in:
-            in_alpha = False
-            break
-        elif not roi_name_a_in and roi_name_b_in:
-            in_alpha = False
-            break
-        elif roi_name_a_in and roi_name_b_in:
-            in_alpha = True
-            break
-
-    in_beta = False
-    for fs_fs in beta:
-        roi_name_a_in = roi_name_a in fs_fs
-        roi_name_b_in = roi_name_b in fs_fs
-
-        if roi_name_a_in and not roi_name_b_in:
-            in_beta = False
-            break
-        elif not roi_name_a_in and roi_name_b_in:
-            in_beta = False
-            break
-        elif roi_name_a_in and roi_name_b_in:
-            in_beta = True
-            break
+    in_beta = pair_in_fs_fs(roi_name_a=roi_name_a,
+                            roi_name_b=roi_name_b,
+                            fs_fs=beta)
 
     return {'alpha_only': alpha_only(in_alpha, in_beta),
             'beta_only': beta_only(in_alpha, in_beta),
             'alpha_and_beta': alpha_and_beta(in_alpha, in_beta)}
 
 
-def calc_cons_cmt_str(roi_name_lst, cmt_str_lst_lst, gamma, runs, tau):
+def calc_cons_cmt_str(roi_name_lst, cmt_str_lst_fs_fs, gamma, runs, tau):
     D = cons_mtx_npa(roi_name_lst=roi_name_lst,
-                     cmt_str_lst_lst=cmt_str_lst_lst)
+                     cmt_str_lst_fs_fs=cmt_str_lst_fs_fs)
     D[D < tau] = 0
     non_zero_D = np.extract(D != 0, D)
     while(len(np.extract(non_zero_D != 1, non_zero_D)) > 1):
-        cmt_str_lst_lst = run_louvain(roi_name_lst=roi_name_lst,
-                                      ctx_mtx_npa=D,
-                                      gamma=gamma,
-                                      runs=runs)
+        cmt_str_lst_fs_fs = run_louvain(roi_name_lst=roi_name_lst,
+                                        ctx_mtx_npa=D,
+                                        gamma=gamma,
+                                        runs=runs)
         D = cons_mtx_npa(roi_name_lst=roi_name_lst,
-                         cmt_str_lst_lst=cmt_str_lst_lst)
+                         cmt_str_lst_fs_fs=cmt_str_lst_fs_fs)
         D[D < tau] = 0
         non_zero_D = np.extract(D != 0, D)
     return cmt_str(roi_name_lst, D)
 
 
+# speediest check of roi_name_a and roi_name_b being in same fs in fs_fs
+def pair_in_fs_fs(roi_name_a, roi_name_b, fs_fs):
+    for fs in fs_fs:
+        roi_name_a_in = roi_name_a in fs
+        roi_name_b_in = roi_name_b in fs
+
+        if roi_name_a_in and not roi_name_b_in:
+            return(False)
+        elif not roi_name_a_in and roi_name_b_in:
+            return(False)
+        elif roi_name_a_in and roi_name_b_in:
+            return(True)
+    return False
+
+
 # returns
 #  consensus matrix D, Dij=num of partitions that i, j share cmt/len partitions
-def cons_mtx_npa(roi_name_lst, cmt_str_lst_lst):
+def cons_mtx_npa(roi_name_lst, cmt_str_lst_fs_fs):
     ret_val = np.zeros((len(roi_name_lst), len(roi_name_lst)))
     # make consensus matrix for each row_roi to col_roi
+
     for row_idx, row_roi in enumerate(roi_name_lst):
         for col_idx, col_roi in enumerate(roi_name_lst):
             if row_idx != col_idx:
                 num_shared = 0
-                for cmt_lst in cmt_str_lst_lst:
-                    for cmt in cmt_lst:
-                        if row_roi in cmt and col_roi in cmt:
-                            num_shared += 1
+                for cmt_str_fs_fs in cmt_str_lst_fs_fs:
+                    # similar logic as pair_in_alpha_beta for speedup
+                    if(pair_in_fs_fs(roi_name_a=row_roi,
+                                     roi_name_b=col_roi,
+                                     fs_fs=cmt_str_fs_fs)):
+                        num_shared += 1
                 ret_val[row_idx, col_idx] = num_shared
 
-    num_parts = float(len(cmt_str_lst_lst))
+    num_parts = float(len(cmt_str_lst_fs_fs))
     ret_val /= num_parts
     return ret_val
 
@@ -211,9 +212,9 @@ def cmt_str(roi_name_lst, cons_mtx_npa):
     return sorted([sorted(frozenset(cmt)) for cmt in cmt_str_lst])
 
 
-# returns cmt_str_lst_lst from louvain
+# returns cmt_str_lst_fs_fs from louvain
 def run_louvain(roi_name_lst, ctx_mtx_npa, gamma, runs):
-    cmt_str_lst_lst = []
+    cmt_str_lst_fs_fs = []
     for run_index in xrange(runs):
         (ci, q) = bct.modularity_louvain_dir(W=ctx_mtx_npa, gamma=gamma)
 
@@ -222,14 +223,15 @@ def run_louvain(roi_name_lst, ctx_mtx_npa, gamma, runs):
 
         cmt_str_dct = {}
         for roi_idx, roi in enumerate(roi_name_lst):
-            cmt_lst = cmt_str_dct.get(ci[roi_idx], [])
-            cmt_lst.append(roi)
-            cmt_str_dct[ci[roi_idx]] = sorted(cmt_lst)
+            cmt_fs = cmt_str_dct.get(ci[roi_idx], frozenset())
+            cmt_fs = cmt_fs.union({roi})
+            cmt_str_dct[ci[roi_idx]] = cmt_fs
 
-        cmt_str_lst_lst.append(sorted([cmt_str_dct[cmt_str_key]
-                                       for cmt_str_key in cmt_str_dct.keys()]))
+        cmt_str_lst_fs_fs.append(frozenset([cmt_str_dct[cmt_str_key]
+                                            for cmt_str_key in
+                                            cmt_str_dct.keys()]))
 
-    return cmt_str_lst_lst
+    return cmt_str_lst_fs_fs
 
 
 def alpha_only(in_alpha, in_beta):
@@ -261,8 +263,8 @@ def lst_fs_fs_to_lst_lst_lst(lst_fs_fs):
     lst_lst_lst = []
     for fs_fs in lst_fs_fs:
         lst_lst = fs_fs_to_lst_lst(fs_fs)
-        lst_lst_lst.append(lst_lst)
-    return lst_lst_lst
+        lst_lst_lst.append(sorted(lst_lst))
+    return sorted(lst_lst_lst)
 
 
 def lst_lst_to_fs_fs(lst_lst):

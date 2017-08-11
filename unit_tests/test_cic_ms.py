@@ -95,20 +95,21 @@ class TestCicMs(unittest.TestCase):
                                 [2.0/3.0, 0, 0],
                                 [0, 0, 0]])
 
-        cmt_str_lst_lst = cic_ms.run_louvain(roi_name_lst=self.roi_name_lst,
-                                             ctx_mtx_npa=ctx_mtx_npa,
-                                             gamma=1.0,
-                                             runs=2)
+        cmt_str_lst_fs_fs = cic_ms.run_louvain(roi_name_lst=self.roi_name_lst,
+                                               ctx_mtx_npa=ctx_mtx_npa,
+                                               gamma=1.0,
+                                               runs=2)
 
-        self.assertEqual(exp_cmt_str_lst_lst, cmt_str_lst_lst)
+        self.assertEqual(sorted(exp_cmt_str_lst_lst),
+                         cic_ms.lst_fs_fs_to_lst_lst_lst(
+                             cmt_str_lst_fs_fs))
 
     def test_calc_cons_cmt_str(self):
         exp_cons_cmt_str = [['AAA', 'BBB', 'CCC']]
 
         cons_cmt_str = cic_ms.calc_cons_cmt_str(
             roi_name_lst=self.roi_name_lst,
-            cmt_str_lst_lst=cic_ms.lst_fs_fs_to_lst_lst_lst(
-                self.cmt_str_lst_fs_fs),
+            cmt_str_lst_fs_fs=self.cmt_str_lst_fs_fs,
             gamma=1.0,
             runs=len(self.cmt_str_lst_fs_fs),
             tau=0.1)
