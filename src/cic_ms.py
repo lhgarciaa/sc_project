@@ -190,26 +190,36 @@ def cons_mtx_npa(roi_name_lst, cmt_str_lst_fs_fs):
 # returns community structure list [ [roi_name1, roi_name2,...], ... [...] ]
 #  from consensus matrix
 def cmt_str(roi_name_lst, cons_mtx_npa):
-    cmt_str_lst = []
-    for row_idx, row_roi in enumerate(roi_name_lst):
-        for col_idx, col_roi in enumerate(roi_name_lst):
-            # always add roi if not there so it at least belongs to its own cmt
+    # first create a dct of {roi_idx: frozenset({roi_idx}) use
+    #  idx instead of actual name to save space
+    cmt_str_dct = {}
+    for roi_idx in xrange(len(roi_name_lst)):
+        cmt_str_dct[roi_idx] = frozenset({roi_idx})
 
-            if row_idx == col_idx:
-                if len([cmt for cmt in cmt_str_lst if row_roi in cmt]) == 0:
-                    cmt_str_lst.append([row_roi])
-            elif cons_mtx_npa[row_idx, col_idx] > 0:
-                cur_lst = [cmt
-                           for cmt in cmt_str_lst
-                           if row_roi in cmt or col_roi in cmt]
-                # will convert everything to single values at the end
-                assert(len(cur_lst)) <= 1
-                if len(cur_lst) == 0:
-                    cmt_str_lst.append([row_roi, col_roi])
-                else:
-                    new = cur_lst[0] + [row_roi, col_roi]
-                    cmt_str_lst[cmt_str_lst.index(cur_lst[0])] = new
-    return sorted([sorted(frozenset(cmt)) for cmt in cmt_str_lst])
+    # now for each row_roi and col_roi
+    #  if row_roi and col_roi share a cmt
+    #   create union of cmt_str_dct[row_roi] w/ cmt_str_dct[col_roi]
+    #   assign union to every roi w/in union
+    for row_idx in xrange(len(roi_name_lst)):
+        for col_idx in xrange(len(roi_name_lst)):
+            if cons_mtx_npa[row_idx, col_idx] > 0:
+                union_set = cmt_str_dct[row_idx].union(cmt_str_dct[col_idx])
+                for roi_idx in union_set:
+                    cmt_str_dct[roi_idx] = union_set
+
+    # frozenset of values will contain just the sets of roi_idx with no dups
+    #  format community structure list and return that
+    cmt_str_dct_vals_fs = frozenset(cmt_str_dct.values())
+
+    cmt_str_lst = []
+    # convert to roi names
+    for roi_idx_fs in cmt_str_dct_vals_fs:
+        cmt_str = []
+        for roi_idx in roi_idx_fs:
+            cmt_str.append(roi_name_lst[roi_idx])
+        cmt_str_lst.append(sorted(cmt_str))
+
+    return sorted(cmt_str_lst)
 
 
 # returns cmt_str_lst_fs_fs from louvain

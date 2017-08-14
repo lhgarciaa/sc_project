@@ -18,7 +18,6 @@ cmd='python -m unittest discover smoke_tests'
 printf "RUNNING SMOKE TESTS with $cmd\n"
 $cmd
 
-printf "\nOK\n"
 set +e
 
 exit 0
