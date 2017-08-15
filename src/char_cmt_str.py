@@ -54,7 +54,6 @@ def main():
         import time
         start = time.time()
 
-    run_npa = np.array([x['run'] for x in louvain_run_arr_dict])
     num_com_npa = np.array(
         [x['num_communities'] for x in louvain_run_arr_dict])
     q_npa = np.array([x['q'] for x in louvain_run_arr_dict])
@@ -78,7 +77,7 @@ def main():
         print("done in {}s".format(time.time()-start))
 
     # calculate a bunch of metrics
-    num_runs = np.max(run_npa)
+    num_runs = len(louvain_run_arr_dict)
     q_max = np.max(q_npa)
     unique_cmt_str = len(com_cnt_dict.keys())
     cmt_str_cnt_npa = np.array([x for x in com_cnt_dict.values()])

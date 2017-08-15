@@ -29,9 +29,7 @@ if [ $num_files -eq $num_runs ]; then
 	num_lines=$((num_lines_hdr - 1))
 	if [ "$num_lines" -eq "$num_runs" ]; then
 	    echo "done";
-	    echo "removing $mod_dir..."
-	    rm -rf $mod_dir
-	    echo "done"
+	    echo "find pre-aggregated results in $mod_dir..."
 	else
 	    echo "ERROR: found $num_lines lines in $cat_file when looking for $num_runs"
 	    echo "quitting"
