@@ -24,7 +24,8 @@ while (( $(echo "$gamma <= $max_gamma" | bc -l) )); do
     log_name_cat=$logs_dir/cat_mod-${print_gamma}_runs-${num_runs}_${name_base}
     job_name=mod-$gamma
     qsub -N $job_name -cwd -t 1-$num_runs -o $log_name_base.out -e $log_name_base.err -q compute.q src/qsub_run_louvain_row_col_ctx_mat.sh $row_column_input_csv $gamma $num_runs $venv_dir
-    qsub -hold_jid $job_name -cwd -o $log_name_cat.out -e $log_name_cat.err -q compute.q src/qsub_concat_louvain.sh $row_column_input_csv $gamma $num_runs
+    hold_job_name=concat-$gamma
+    qsub -N $hold_job_name -hold_jid $job_name -cwd -o $log_name_cat.out -e $log_name_cat.err -q compute.q src/qsub_concat_louvain.sh $row_column_input_csv $gamma $num_runs
     gamma=$(echo "$gamma + $gamma_inc" | bc);
 done;
  
