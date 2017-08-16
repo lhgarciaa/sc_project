@@ -65,8 +65,6 @@ def main():
         if row_idx == 0:
             ATLAS_NAME = row[agg_overlap_csv_header.index('Atlas Name')]
             ATLAS_VERSION = row[agg_overlap_csv_header.index('Atlas Version')]
-            CHANNEL_NUMBER = row[agg_overlap_csv_header.index(
-                'Channel Number')]
             GRID_SIZE = int(row[agg_overlap_csv_header.index('Grid Size')])
             OVERLAP_FORMAT = row[agg_overlap_csv_header.index(
                 'Overlap Format')]
@@ -75,8 +73,6 @@ def main():
         # for assertion
         atlas_name = row[agg_overlap_csv_header.index('Atlas Name')]
         atlas_version = row[agg_overlap_csv_header.index('Atlas Version')]
-        channel_number = row[agg_overlap_csv_header.index(
-            'Channel Number')]
         grid_size = int(row[agg_overlap_csv_header.index('Grid Size')])
         overlap_format = row[agg_overlap_csv_header.index(
             'Overlap Format')]
@@ -90,7 +86,6 @@ def main():
         # Format
         assert atlas_name == ATLAS_NAME
         assert atlas_version == ATLAS_VERSION
-        assert channel_number == CHANNEL_NUMBER
         assert grid_size == GRID_SIZE
         assert overlap_format == OVERLAP_FORMAT
 
