@@ -39,6 +39,9 @@ def main():
     parser.add_argument('-wh', '--write_header',
                         help='Write header to file before first line(s)',
                         action="store_true")
+    parser.add_argument('-und', '--undirected',
+                        help='Specify input matrix as undirected',
+                        action='store_true')
 
     args = vars(parser.parse_args())
 
@@ -59,6 +62,7 @@ def main():
 
     num_slots = args['num_slots']
     write_header = args['write_header']
+    undirected = args['undirected']
 
     # OPEN, READ INPUT CSV
     (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
@@ -110,7 +114,8 @@ def main():
     # first create argument list
     map_arg_lst = [(None, None)] * runs
     for idx in xrange(runs):
-        map_arg_lst[idx] = (connectivity_matrix_npa, gamma, verbose, num_slots)
+        map_arg_lst[idx] = (connectivity_matrix_npa, gamma, undirected,
+                            verbose, num_slots)
 
     if verbose:
         print("done")
@@ -149,8 +154,12 @@ def main():
     # otherwise, use single process for call
     else:
         for map_arg in map_arg_lst:
-            map_results.append(bct.modularity_louvain_dir(map_arg[0],
-                                                          map_arg[1]))
+            if undirected:
+                map_results.append(bct.modularity_louvain_und(map_arg[0],
+                                                              map_arg[1]))
+            else:
+                map_results.append(bct.modularity_louvain_dir(map_arg[0],
+                                                              map_arg[1]))
 
     if verbose:
         print("done in {:0.06}s".format(time.time() - start))
@@ -177,13 +186,12 @@ def main():
 
     # WRITE LOUVAIN TO OUTPUT CSV
     key_index_arr = sorted(
-            louvain_run_arr_dict[0].keys(), reverse=True)
+        louvain_run_arr_dict[0].keys(), reverse=True)
     # write louvain_run_arr_dict to output_csv_path
     assert len(louvain_run_arr_dict) > 0,\
         "Your louvain run ain't got no results bro"  # reasonable assumption
 
     if write_header:
-        print("writing header and louvain results...")
         with open(output_csv_path, 'wb') as csvfile:
             csvwriter = csv.writer(csvfile)
             # create key index automatically
@@ -194,10 +202,8 @@ def main():
                 for key in key_index_arr:
                     map_val_arr.append(m[key])
                 csvwriter.writerow(map_val_arr)
-        print("done writing header and louvain results")
 
     else:
-        print("writing louvain results...")
         with open(output_csv_path, 'a') as csvfile:
             csvwriter = csv.writer(csvfile)
             for m in louvain_run_arr_dict:
@@ -206,7 +212,6 @@ def main():
                 for key in key_index_arr:
                     map_val_arr.append(m[key])
                 csvwriter.writerow(map_val_arr)
-        print("done writing louvain results")
 
     print("Wrote Louvain results to {}".format(output_csv_path))
 
@@ -222,8 +227,9 @@ def main():
 
 def modularity_louvain_dir_wrapper(args):
     # if verbose
-    verbose = args[2]
-    num_slots = args[3]
+    undirected = args[2]
+    verbose = args[3]
+    num_slots = args[4]
     p = psutil.Process()
     if verbose:
         print("calling modularity louvain dir at {}".format(
@@ -238,7 +244,10 @@ def modularity_louvain_dir_wrapper(args):
         print("new CPU affinity {}".format(p.cpu_affinity()))
 
     only_mod_args = args[0:2]
-    return bct.modularity_louvain_dir(*only_mod_args)
+    if undirected:
+        return bct.modularity_louvain_und(*only_mod_args)
+    else:
+        return bct.modularity_louvain_dir(*only_mod_args)
 
 
 if __name__ == "__main__":
