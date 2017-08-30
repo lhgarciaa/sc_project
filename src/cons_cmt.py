@@ -18,6 +18,10 @@ def main():
     parser.add_argument('-i', '--input_csv',
                         help='Input, CSV containing multiple runs of '
                         'modularity detection', required=True)
+    parser.add_argument('-lt', '--list_type',
+                        help='Boolean true if community structure format is '
+                        'list type',
+                        action='store_true')
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
@@ -27,7 +31,9 @@ def main():
     input_csv_path = args['input_csv']
     assert os.path.isfile(input_csv_path),\
         "can't find input csv file {}".format(input_csv_path)
+    list_type=args['list_type']
     verbose = args['verbose']
+
 
     # parse input csv into louvain run arr dict, all values are strings
     # [ { 'run' : run
@@ -57,11 +63,13 @@ def main():
     cmt_str_lst_fs_fs = []  # community structure list, list
     roi_name_lst = []
     for run in louvain_run_arr_dict:
-        if len(roi_name_lst) == 0:
-            roi_name_lst = sorted(
-                cic_utils.flatten(run['community_structure'].values()))
+        if list_type:
+            cmt_str_lst = run['community_structure']
+        else:
+            cmt_str_lst = run['community_structure'].values()
 
-        cmt_str_lst = run['community_structure'].values()
+        roi_name_lst = sorted(cic_utils.flatten(cmt_str_lst))
+
         cmt_str_lst_fs_fs.append(cic_ms.lst_lst_to_fs_fs(cmt_str_lst))
         set_of_sets = frozenset([frozenset(x) for x in cmt_str_lst])
         cnt = com_cnt_dict.get(set_of_sets, 0)
