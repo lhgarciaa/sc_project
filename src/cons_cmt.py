@@ -31,9 +31,8 @@ def main():
     input_csv_path = args['input_csv']
     assert os.path.isfile(input_csv_path),\
         "can't find input csv file {}".format(input_csv_path)
-    list_type=args['list_type']
+    list_type = args['list_type']
     verbose = args['verbose']
-
 
     # parse input csv into louvain run arr dict, all values are strings
     # [ { 'run' : run
