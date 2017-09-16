@@ -1,0 +1,2 @@
+convert -crop 350x350 small_thresh.tif cell_thresh_%d
+convert cell_thresh_right.tif -fill red -opaque black cell_thresh_right_red.tif
