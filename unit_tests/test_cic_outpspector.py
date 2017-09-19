@@ -14,6 +14,7 @@ class TestCicOutspector(unittest.TestCase):
         self.exp_thresh_tif_path = 'test_data/test_cic_outspector/SW120228-02B/threshold/channels/2/SW120228-02B_2_01_ch2-th.tif'  # noqa: E501
         self.gcs = '350'
         self.exp_overlap_path = 'test_data/test_cic_outspector/SW120228-02B/overlap/2/SW120228-02B_2_01_ch2_grid-350.csv'  # noqa: E501
+        self.exp_atlas_tif_path = '/ifs/loni/faculty/dong/mcp/atlas_roigb/053_2013_rgb-01_append.tif'  # noqa: E501
 
     def test_overlap_dir_path(self):
         overlap_dir_path = cic_outspector.overlap_dir_path(
@@ -61,3 +62,8 @@ class TestCicOutspector(unittest.TestCase):
             opairs_section=opairs_section,
             ch=self.ch)
         self.assertEqual(self.exp_thresh_tif_path, thresh_tif_path)
+
+    def test_atlas_tif_path(self):
+        atlas_tif_path = cic_outspector.atlas_tif_path(lvl=self.lvl)
+
+        self.assertEqual(self.exp_atlas_tif_path, atlas_tif_path)
