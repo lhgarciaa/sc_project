@@ -8,11 +8,11 @@ import numpy as np
 #  return sorted list of frozensets corresponding to communities in consensus
 #   only of images with threshold level
 #   note this method assumes cmt structure is made up of grid cells
-def cons_cmt_str(cons_cmt_str_csv_path, lvl):
-    assert os.path.isfile(cons_cmt_str_csv_path), "No csv {}".format(
-        cons_cmt_str_csv_path)
+def cons_cmt_str(cons_cmt_csv_path, lvl):
+    assert os.path.isfile(cons_cmt_csv_path), "No csv {}".format(
+        cons_cmt_csv_path)
     cons_cmt_str = None
-    with open(cons_cmt_str_csv_path) as csvfile:
+    with open(cons_cmt_csv_path) as csvfile:
         csvreader = csv.reader(csvfile)
         for row in csvreader:
             if 'consensus com str' in row[0]:
@@ -34,10 +34,20 @@ def thresh_tif(thresh_tif_path):
     return cv2.imread(thresh_tif_path, cv2.IMREAD_GRAYSCALE)
 
 
-def cell_img(thresh_tif_path, row, col, gcs):
-    row_stop = row + gcs
-    col_stop = col + gcs
+'''  edges_tup - (xmin, xmax, ymin, ymax)
+'''
+
+
+def cell_img(thresh_tif_path, row, col, gcs, hemi, edges_tup):
     img = thresh_tif(thresh_tif_path=thresh_tif_path)
+    (xmin, xmax, ymin, ymax) = edges_tup
+    grid_th = img[ymin:ymax, xmin:xmax]
+    midx = grid_th.shape[1] / 2
+    row_stop = min(col + gcs, ymax)
+    if hemi == 'l':
+        col_stop = min(col + gcs, midx)
+    if hemi == 'r':
+        col_stop = min(col + gcs, xmax)
     cell_img = img[row:row_stop, col:col_stop]
     return cell_img
 
@@ -48,6 +58,7 @@ def has_thresh(cell_img):
     #  we test for white
     # any() checks if anything evaluates to True i.e. not zero
     return (cv2.bitwise_not(cell_img).any())
+
 
 # assume cell_img is one channel
 def color_thresh(cell_img, clr_idx):

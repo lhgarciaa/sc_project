@@ -18,7 +18,9 @@ class TestCicPlot(unittest.TestCase):
              frozenset([])]
 
     def test_cell_img(self):
-        cell_img = cic_plot.cell_img(self.thresh_tif_path, 0, 0, self.gcs)
+        cell_img = cic_plot.cell_img(thresh_tif_path=self.thresh_tif_path,
+                                     row=0, col=0, gcs=self.gcs, hemi='r',
+                                     edges_tup=(0, 700, 0, 350))
         self.assertIsNotNone(cell_img)
         height_width_tup = cell_img.shape[:2]
         self.assertEqual((self.gcs, self.gcs), height_width_tup)
@@ -35,21 +37,22 @@ class TestCicPlot(unittest.TestCase):
     def test_has_thresh(self):
         self.assertTrue(os.path.isfile(self.thresh_tif_path))
         cell_img = cic_plot.cell_img(thresh_tif_path=self.thresh_tif_path,
-                                     row=0,
-                                     col=0,
-                                     gcs=self.gcs)
+                                     row=0, col=0, gcs=self.gcs, hemi='r',
+                                     edges_tup=(0, 700, 0, 350))
         self.assertFalse(cic_plot.has_thresh(cell_img))
         cell_img = cic_plot.cell_img(thresh_tif_path=self.thresh_tif_path,
                                      row=0,
                                      col=self.gcs,
-                                     gcs=self.gcs)
+                                     gcs=self.gcs, hemi='r',
+                                     edges_tup=(0, 700, 0, 350))
         self.assertTrue(cic_plot.has_thresh(cell_img))
 
     def test_color_thresh(self):
         cell_img = cic_plot.cell_img(thresh_tif_path=self.thresh_tif_path,
                                      row=0,
                                      col=self.gcs,
-                                     gcs=self.gcs)
+                                     gcs=self.gcs, hemi='r',
+                                     edges_tup=(0, 700, 0, 350))
         assert os.path.isfile(self.cmt_clr_thresh_tif_path), \
             "No tif {}".format(self.cmt_clr_thresh_tif_path)
         exp_color_thresh = cv2.imread(self.cmt_clr_thresh_tif_path,

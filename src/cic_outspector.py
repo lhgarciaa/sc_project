@@ -42,17 +42,27 @@ def thresh_tif_path(thresh_dir_path, opairs_section, ch):
 def thresh_tif(thresh_tif_path):
     return None
 
-
+# colorize thresh_tif_path image by index of cmt in cons_cmt_csv_path
 def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path, lvl, gcs,
                    hemi):
     cons_cmt_str = cic_plot.cons_cmt_str(
-        cons_cmt_str_csv_path=cons_cmt_str_csv_path,
+        cons_cmt_csv_path=cons_cmt_csv_path,
         lvl=lvl)
     thesh_tif = cic_plot.thresh_tif(thresh_tif_path=thresh_tif_path)
-    overlap_tup = cic_overlap.read_overlap_csv(inpust_csv_path=overlap_path)
-    (meta_dct, header_lst, rows) = overlap_tup
+    (meta_dct, header_lst, rows) = \
+        cic_overlap.read_overlap_csv(inpust_csv_path=overlap_path)
+
     for row in rows:
-        # get
+        # if in hemi
+        #  get threshold column and row
+        #   get cell_img from column and row
+        #    get threshold value at column and row
+        #    get overlap at column and row
+        #    if theshold xor overlap then error
+        #    get cmt index of overlap
+        #    use cmt index to color threshold image
+        #    return threshold image
+
         location = jfkdlsj
         row_hemi = fkdjs
         if hemi == row_hemi:
