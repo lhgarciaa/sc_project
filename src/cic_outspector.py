@@ -42,6 +42,13 @@ def thresh_tif_path(thresh_dir_path, opairs_section, ch):
 def thresh_tif(thresh_tif_path):
     return None
 
+
+def atlas_tif_path(lvl):
+    pref_str = "{:03}".format(int(lvl))
+    base_name = pref_str + '_2013_rgb-01_append.tif'
+    return os.path.join('/ifs/loni/faculty/dong/mcp/atlas_roigb', base_name)
+
+
 # colorize thresh_tif_path image by index of cmt in cons_cmt_csv_path
 def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path, lvl, gcs,
                    hemi):
