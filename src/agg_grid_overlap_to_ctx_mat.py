@@ -57,6 +57,9 @@ def main():
     if verbose:
         print("Calculating connectivity matrix from {} agg overlap rows".
               format(len(agg_overlap_rows)))
+        if exclude_sections is not None:
+            print("Excluding {} sections: {}".format(len(exclude_sections),
+                                                     exclude_sections))
 
     for row_idx, row in enumerate(agg_overlap_rows):
         # get constant vals, assume
