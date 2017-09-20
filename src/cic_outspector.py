@@ -50,34 +50,46 @@ def atlas_tif_path(lvl):
 
 
 # colorize thresh_tif_path image by index of cmt in cons_cmt_csv_path
-def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path, lvl, gcs,
-                   hemi):
+def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path,
+                   atlas_tif_path, gcs, lvl, hemi):
     cons_cmt_str = cic_plot.cons_cmt_str(
         cons_cmt_csv_path=cons_cmt_csv_path,
         lvl=lvl)
-    thesh_tif = cic_plot.thresh_tif(thresh_tif_path=thresh_tif_path)
+    thresh_img = cic_plot.thresh_tif(thresh_tif_path=thresh_tif_path)
     (meta_dct, header_lst, rows) = \
         cic_overlap.read_overlap_csv(inpust_csv_path=overlap_path)
+    dct_gcs = meta_dct['gcs']
+    dct_lvl = meta_dct['lvl']
 
-    for row in rows:
-        # if in hemi
-        #  get threshold column and row
-        #   get cell_img from column and row
-        #    get threshold value at column and row
-        #    get overlap at column and row
-        #    if theshold xor overlap then error
-        #    get cmt index of overlap
-        #    use cmt index to color threshold image
-        #    return threshold image
+    assert gcs == dct_gcs and lvl == dct_lvl, \
+        "{} gcs != {} dct_gcs and {} != {} dct_lvl".format(gcs, dct_gcs,
+                                                           lvl, dct_lvl)
 
-        location = jfkdlsj
-        row_hemi = fkdjs
-        if hemi == row_hemi:
-            ccs_fmt_location = fjdklsa
-            cmt_idx = -1
-            for idx, cmt in enumerate(cons_cmt_str):
-                if ccs_fmt_cell in cmt:
-                    cmt_idx = idx
+    atlas_img = cic_plot.atlas_tif(atlas_tif_path)
+    edges_tup = cic_plot.get_edges(atlas_img)
+    (xmin, xmax, ymin, ymax) = edges_tup
+
+    grid_thresh_img = thresh_img[ymin:ymax, xmin:xmax]
+    grid_row_max = (xmax / gcs) + 1
+    grid_col_max = (ymax / gcs) + 1
+
+    # get threshold column and row
+    #   get cell_img from column and row
+    #    get threshold value at column and row
+    #    get overlap at column and row
+    #    if theshold xor overlap then error
+    #    get cmt index of overlap
+    #    use cmt index to color threshold image
+    #    return threshold image
+
+    location = jfkdlsj
+    row_hemi = fkdjs
+    if hemi == row_hemi:
+        ccs_fmt_location = fjdklsa
+        cmt_idx = -1
+        for idx, cmt in enumerate(cons_cmt_str):
+            if ccs_fmt_cell in cmt:
+                cmt_idx = idx
             assert cmd_idx != -1, "Nope! {} in {} but not in {}".format(
                 location,
                 overlap_path,

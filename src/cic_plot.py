@@ -5,6 +5,83 @@ import ast
 import numpy as np
 
 
+class BoundingBox:
+    '''
+    We Use this bounding box extraction regularly so lets extract and abstract
+        bool_array is 2d array where region to be bound
+        (edges determined) is true and everything else is false
+    '''
+    @staticmethod
+    def get_edges(bool_twodarray):
+        xmin = 0
+        ymin = 0
+        xmax = bool_twodarray.shape[1] - 1
+        ymax = bool_twodarray.shape[0] - 1
+        # find xmin
+        looking = True
+        x = xmin
+        while looking:
+            col = bool_twodarray[:, x]
+            if col.any():
+                looking = False
+                xmin = x
+            x += 1
+            if x >= xmax:
+                xmin = 0
+                looking = False
+        # find xmax
+        looking = True
+        x = xmax
+        while looking:
+            col = bool_twodarray[:, x]
+            if col.any():
+                looking = False
+                xmax = x
+            x -= 1
+            if x <= 0:
+                xmax = bool_twodarray.shape[1] - 1
+                looking = False
+        # find ymin
+        looking = True
+        y = ymin
+        while looking:
+            row = bool_twodarray[y, :]
+            if row.any():
+                looking = False
+                ymin = y
+            y += 1
+            if y >= ymax:
+                ymin = 0
+                looking = False
+        # find xmax
+        looking = True
+        y = ymax
+        while looking:
+            row = bool_twodarray[y, :]
+            if row.any():
+                looking = False
+                ymax = y
+            y -= 1
+            if y <= 0:
+                ymax = bool_twodarray.shape[0] - 1
+                looking = False
+        return (xmin, xmax, ymin, ymax)
+
+
+# atlas - rgb atlas file
+# t - ndarray with dtype = bool
+#     true for any non-white pixel element in rgb atlas file
+# returns 4 element tuple (
+# xmin - leftmost non-white atlas pixel (region)
+# xmax - rightmost non-white atlas pixel (region)
+# ymin - topmost non-while atlas pixel (region)
+# ymax - bottommost non-white atlas pixel (region)
+def get_edges(rgb_code):
+    WHITE = 255 * 256 * 256 + 255 * 256 + 255
+    t = rgb_code != WHITE
+    return BoundingBox.get_edges(t)
+
+
 #  return sorted list of frozensets corresponding to communities in consensus
 #   only of images with threshold level
 #   note this method assumes cmt structure is made up of grid cells
@@ -34,21 +111,26 @@ def thresh_tif(thresh_tif_path):
     return cv2.imread(thresh_tif_path, cv2.IMREAD_GRAYSCALE)
 
 
-'''  edges_tup - (xmin, xmax, ymin, ymax)
-'''
+# does not change color channels
+def atlas_tif(atlas_tif_path):
+    assert os.path.isfile(atlas_tif_path), \
+        "No tif {}".format(atlas_tif_path)
+    return cv2.imread(atlas_tif_path, cv2.IMREAD_UNCHANGED)
 
 
-def cell_img(thresh_tif_path, row, col, gcs, hemi, edges_tup):
-    img = thresh_tif(thresh_tif_path=thresh_tif_path)
+#  edges_tup - (xmin, xmax, ymin, ymax)
+#  row - row in pixels (not grid cells)
+#  col - col in pixels (not grid cells)
+#  gcs - grid cell size
+def cell_img(grid_thresh_img, y, x, gcs, hemi, edges_tup):
     (xmin, xmax, ymin, ymax) = edges_tup
-    grid_th = img[ymin:ymax, xmin:xmax]
-    midx = grid_th.shape[1] / 2
-    row_stop = min(col + gcs, ymax)
+    midx = grid_thresh_img.shape[1] / 2
+    y_stop = min(x + gcs, ymax)
     if hemi == 'l':
-        col_stop = min(col + gcs, midx)
+        x_stop = min(x + gcs, midx)
     if hemi == 'r':
-        col_stop = min(col + gcs, xmax)
-    cell_img = img[row:row_stop, col:col_stop]
+        x_stop = min(x + gcs, xmax)
+    cell_img = grid_thresh_img[y:y_stop, x:x_stop]
     return cell_img
 
 

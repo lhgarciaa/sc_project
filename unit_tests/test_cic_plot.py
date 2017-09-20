@@ -16,11 +16,15 @@ class TestCicPlot(unittest.TestCase):
         self.exp_cons_cmt_str = \
             [frozenset(['(53:r:16:10)', '(53:r:16:11)']), frozenset([]),
              frozenset([])]
+        img = cic_plot.thresh_tif(thresh_tif_path=self.thresh_tif_path)
+        self.edges_tup = (0, 700, 0, 350)
+        (xmin, xmax, ymin, ymax) = self.edges_tup
+        self.grid_thresh_img = img[ymin:ymax, xmin:xmax]
 
     def test_cell_img(self):
-        cell_img = cic_plot.cell_img(thresh_tif_path=self.thresh_tif_path,
-                                     row=0, col=0, gcs=self.gcs, hemi='r',
-                                     edges_tup=(0, 700, 0, 350))
+        cell_img = cic_plot.cell_img(grid_thresh_img=self.grid_thresh_img,
+                                     y=0, x=0, gcs=self.gcs, hemi='r',
+                                     edges_tup=self.edges_tup)
         self.assertIsNotNone(cell_img)
         height_width_tup = cell_img.shape[:2]
         self.assertEqual((self.gcs, self.gcs), height_width_tup)
@@ -36,23 +40,23 @@ class TestCicPlot(unittest.TestCase):
 
     def test_has_thresh(self):
         self.assertTrue(os.path.isfile(self.thresh_tif_path))
-        cell_img = cic_plot.cell_img(thresh_tif_path=self.thresh_tif_path,
-                                     row=0, col=0, gcs=self.gcs, hemi='r',
-                                     edges_tup=(0, 700, 0, 350))
+        cell_img = cic_plot.cell_img(grid_thresh_img=self.grid_thresh_img,
+                                     y=0, x=0, gcs=self.gcs, hemi='r',
+                                     edges_tup=self.edges_tup)
         self.assertFalse(cic_plot.has_thresh(cell_img))
-        cell_img = cic_plot.cell_img(thresh_tif_path=self.thresh_tif_path,
-                                     row=0,
-                                     col=self.gcs,
+        cell_img = cic_plot.cell_img(grid_thresh_img=self.grid_thresh_img,
+                                     y=0,
+                                     x=self.gcs,
                                      gcs=self.gcs, hemi='r',
-                                     edges_tup=(0, 700, 0, 350))
+                                     edges_tup=self.edges_tup)
         self.assertTrue(cic_plot.has_thresh(cell_img))
 
     def test_color_thresh(self):
-        cell_img = cic_plot.cell_img(thresh_tif_path=self.thresh_tif_path,
-                                     row=0,
-                                     col=self.gcs,
+        cell_img = cic_plot.cell_img(grid_thresh_img=self.grid_thresh_img,
+                                     y=0,
+                                     x=self.gcs,
                                      gcs=self.gcs, hemi='r',
-                                     edges_tup=(0, 700, 0, 350))
+                                     edges_tup=self.edges_tup)
         assert os.path.isfile(self.cmt_clr_thresh_tif_path), \
             "No tif {}".format(self.cmt_clr_thresh_tif_path)
         exp_color_thresh = cv2.imread(self.cmt_clr_thresh_tif_path,
