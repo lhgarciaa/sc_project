@@ -92,12 +92,12 @@ def main():
         # user communities defined in input_csv_path to color threshold in
         #  thresh_tif_path at regions overlapped in overlap_path
         cmt_clr_thresh_img = cic_outspector.cmt_clr_thresh(
-            char_cmt_csv_path=input_csv_path,
+            cons_cmt_csv_path=input_csv_path,
             thresh_tif_path=thresh_tif_path,
             overlap_path=overlap_path,
             atlas_tif_path=atlas_tif_path,
-            gcs=gcs,
-            lvl=lvl,
+            gcs=int(gcs),
+            lvl=int(lvl),
             hemi='r')
         cv2.imwrite(output_img_path, cmt_clr_thresh_img)
 

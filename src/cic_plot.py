@@ -3,6 +3,9 @@ import os
 import csv
 import ast
 import numpy as np
+import sys
+
+csv.field_size_limit(sys.maxsize)  # let's rock
 
 
 class BoundingBox:
@@ -89,6 +92,7 @@ def cons_cmt_str(cons_cmt_csv_path, lvl):
     assert os.path.isfile(cons_cmt_csv_path), "No csv {}".format(
         cons_cmt_csv_path)
     cons_cmt_str = None
+
     with open(cons_cmt_csv_path) as csvfile:
         csvreader = csv.reader(csvfile)
         for row in csvreader:
@@ -102,6 +106,16 @@ def cons_cmt_str(cons_cmt_csv_path, lvl):
                             lvl_lst.append(cell)
                     cons_cmt_str.append(frozenset(lvl_lst))
     return cons_cmt_str
+
+
+# return community index of key defined by lvel, hemisphere, col and row
+#  or return None if no community found
+def cmt_idx(cons_cmt_str, lvl, hemi, col, row):
+    key = '({}:{}:{}:{})'.format(lvl, hemi, col, row)
+    for idx, cons_cmt in enumerate(cons_cmt_str):
+        if key in cons_cmt:
+            return idx
+    return None
 
 
 # assumes and returns grayscale
@@ -118,6 +132,7 @@ def atlas_tif(atlas_tif_path):
     return cv2.imread(atlas_tif_path, cv2.IMREAD_UNCHANGED)
 
 
+# return img corresponding to gcs size squared grid cell at row, col
 #  edges_tup - (xmin, xmax, ymin, ymax)
 #  row - row in pixels (not grid cells)
 #  col - col in pixels (not grid cells)
@@ -134,6 +149,26 @@ def cell_img(grid_thresh_img, y, x, gcs, hemi, edges_tup):
     return cell_img
 
 
+# similar to cell_img(), but paste cell_img at location
+#  idx_lst is the index into the color channel... hmmm, could be confusing
+#  does not return anything
+def paste_cell_img(cell_img, y, x, gcs, hemi, edges_tup, idx, grid_thresh_img):
+    assert len(grid_thresh_img.shape) > 2, \
+        "grid_thresh_img {} channels, expected 4".format(
+            len(grid_thresh_img.shape))
+    assert grid_thresh_img.shape[2] == 4, \
+        "grid_thresh_img {} channels, expected 4".format(
+            len(grid_thresh_img.shape[2]))
+    (xmin, xmax, ymin, ymax) = edges_tup
+    midx = grid_thresh_img.shape[1] / 2
+    y_stop = min(x + gcs, ymax)
+    if hemi == 'l':
+        x_stop = min(x + gcs, midx)
+    if hemi == 'r':
+        x_stop = min(x + gcs, xmax)
+    grid_thresh_img[y:y_stop, x:x_stop] = cell_img
+
+
 def has_thresh(cell_img):
     # do bitwise_not since are actually testing for black since thresh
     #  represented as black... bitwise_not converts black to white, then
@@ -142,16 +177,28 @@ def has_thresh(cell_img):
     return (cv2.bitwise_not(cell_img).any())
 
 
+# does not change color channels
+def gray2bgra_tif(tif_path):
+    assert os.path.isfile(tif_path), \
+        "No tif {}".format(tif_path)
+    gray_img = cv2.imread(tif_path, cv2.IMREAD_GRAYSCALE)
+    return cv2.cvtColor(gray_img, cv2.COLOR_GRAY2BGRA)
+
+
 # assume cell_img is one channel
-def color_thresh(cell_img, clr_idx):
+#  returns BGRA image
+def clr_thresh(cell_img, clr_idx):
     assert len(cell_img.shape) <= 2, \
         "cell_img {} channels, expected 2".format(cell_img.shape[2])
-    clr_arr = [[0,   0,   255, 255],
-               [0,   255,   0, 255],
-               [255,    0,  0, 255]]
     # got this technique from
     #  https://stackoverflow.com/questions/14786179/
     #  how-to-convert-a-1-channel-image-into-a-3-channel-with-opencv2
+    clr_arr = [[0,   0,   255, 255],
+               [0,   255,   0, 255],
+               [255,    0,  0, 255]]
+    assert clr_idx < len(clr_arr), "Only {} colors supported at this time".\
+        format(len(clr_arr))
+
     new_img = cv2.cvtColor(cell_img, cv2.COLOR_GRAY2BGRA)
 
     new_img[np.where((new_img == [0, 0, 0, 255]).all(axis=2))] = \

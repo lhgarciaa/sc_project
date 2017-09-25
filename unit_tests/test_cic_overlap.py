@@ -79,6 +79,17 @@ class TestCicOverlap(unittest.TestCase):
                          overlap_csv_header_lst)
         self.assertEqual(self.exp_overlap_csv_rows, overlap_csv_rows)
 
+    def test_overlap_row(self):
+        overlap_tup = cic_overlap.read_overlap_csv(self.test_overlap_csv_path)
+        row_key_tup_lst = [('l', 0, 7), ('l', 0, 8), ('l', 0, 9)]
+
+        for idx, row_key_tup in enumerate(row_key_tup_lst):
+            row = cic_overlap.overlap_row(overlap_tup,
+                                          hemi=row_key_tup[0],
+                                          col=row_key_tup[1],
+                                          row=row_key_tup[2])
+            self.assertEqual(self.exp_overlap_csv_rows[idx], row)
+
     def test_read_agg_overlap_csv(self):
         (agg_overlap_csv_header_lst, agg_overlap_csv_rows) = \
             cic_overlap.read_agg_overlap_csv(self.test_agg_overlap_csv_path)

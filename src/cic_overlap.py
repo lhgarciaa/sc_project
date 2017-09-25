@@ -19,7 +19,8 @@ def read_overlap_csv(input_csv_path):
     header_lst = []
     rows = []
 
-    assert os.path.isfile(input_csv_path)
+    assert os.path.isfile(input_csv_path), "No overlap csv {}".format(
+        input_csv_path)
     with open(input_csv_path, 'rb') as csvfile:
         csvreader = csv.reader(csvfile)
         num_metalines = 0
@@ -59,6 +60,24 @@ def read_agg_overlap_csv(input_csv_path):
     (header_lst, rows) = tup[1:len(tup)]
 
     return (header_lst, rows)
+
+
+# return row from overlap corresponding to hemi, column row, None if not found
+def overlap_row(overlap_tup, hemi, col, row):
+    # assert that column header is as expected
+    (meta_dct, header_lst, overlap_rows) = overlap_tup
+    assert header_lst[0] == '(HEMISPHERE:COLUMN:ROW)', \
+        "Uh-oh, header column {} overlap file is nor formatted as required".\
+        format(header_lst[0])
+
+    key = '({}:{}:{})'.format(hemi, col, row)
+    # find row containing key in first column and return that
+    for overlap_row in overlap_rows:
+        if overlap_row[0] == key:
+            return overlap_row
+
+    # no row found
+    return None
 
 
 if __name__ == "__main__":
