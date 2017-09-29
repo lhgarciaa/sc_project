@@ -46,26 +46,31 @@ class RunSmokeTests(unittest.TestCase):
                       format(time.time() - start))
 
                 # verify output file exists
-                self.assertTrue(os.path.isfile(cmd_dct['OUTPUT_PATH']),
-                                msg='\n\nThe command\n{}\ndid not generate '
-                                'expected output\n{}\ncwd is {}\n'.
-                                format(cmd_dct['COMMAND'],
-                                       cmd_dct['OUTPUT_PATH'],
-                                       os.getcwd()))
+                output_path_lst = cmd_dct['OUTPUT_PATH'].split()
+                for output_path in output_path_lst:
+                    self.assertTrue(os.path.isfile(output_path),
+                                    msg='\n\nThe command\n{}\ndid not generate'
+                                    ' expected output\n{}\ncwd is {}\n'.
+                                    format(cmd_dct['COMMAND'],
+                                           output_path,
+                                           os.getcwd()))
 
                 # verify output file matches expected content
-                self.assertTrue(os.path.isfile(cmd_dct['EXP_CONTENT_PATH']),
-                                msg='"{}" not there\ncwd is {}'.format(
-                                    cmd_dct['EXP_CONTENT_PATH'],
-                                    os.getcwd()))
-
-                subprocess.call(['dos2unix', '-q', cmd_dct['OUTPUT_PATH']])
-                self.assertTrue(filecmp.cmp(cmd_dct['OUTPUT_PATH'],
-                                            cmd_dct['EXP_CONTENT_PATH'],
-                                            shallow=False),
-                                msg='files are not the same, run:\n'
-                                'meld {} {}\nto view differences.'.
-                                format(cmd_dct['EXP_CONTENT_PATH'],
-                                       cmd_dct['OUTPUT_PATH']))
+                exp_content_path_lst = cmd_dct['EXP_CONTENT_PATH'].split()
+                for exp_content_path in exp_content_path_lst:
+                    self.assertTrue(os.path.isfile(exp_content_path),
+                                    msg='"{}" not there\ncwd is {}'.format(
+                                        exp_content_path,
+                                        os.getcwd()))
+                for idx, output_path in enumerate(output_path_lst):
+                    exp_content_path = exp_content_path_lst[idx]
+                    subprocess.call(['dos2unix', '-q', output_path])
+                    self.assertTrue(filecmp.cmp(output_path,
+                                                exp_content_path,
+                                                shallow=False),
+                                    msg='files are not the same, run:\n'
+                                    'meld {} {}\nto view differences.'.
+                                    format(exp_content_path,
+                                           output_path))
 
                 os.remove(cmd_dct['OUTPUT_PATH'])

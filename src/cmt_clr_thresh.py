@@ -15,7 +15,7 @@ def main():
                         'structure ',
                         required=True)
     parser.add_argument('-cd', '--case_dir',
-                        help='Directory to Connection Lens casse',
+                        help='Directory to Connection Lens case',
                         required=True)
     parser.add_argument('-gcs', '--grid_cell_size',
                         required=True)
@@ -89,7 +89,7 @@ def main():
         atlas_tif_path = cic_outspector.atlas_tif_path(lvl=lvl)
         assert atlas_tif_path is not None, "atlas tif {} not found".format(
             atlas_tif_path)
-        # user communities defined in input_csv_path to color threshold in
+        # use communities defined in input_csv_path to color threshold in
         #  thresh_tif_path at regions overlapped in overlap_path
         cmt_clr_thresh_img = cic_outspector.cmt_clr_thresh(
             cons_cmt_csv_path=input_csv_path,

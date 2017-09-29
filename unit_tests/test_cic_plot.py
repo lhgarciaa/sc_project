@@ -74,7 +74,6 @@ class TestCicPlot(unittest.TestCase):
                                 gcs=self.gcs,
                                 hemi='r',
                                 edges_tup=self.edges_tup,
-                                idx=0,
                                 grid_thresh_img=thresh_img)
 
         # check that pasted clr_thresh appears in thresh_img as expected

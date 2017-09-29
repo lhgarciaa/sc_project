@@ -80,8 +80,10 @@ class BoundingBox:
 # ymin - topmost non-while atlas pixel (region)
 # ymax - bottommost non-white atlas pixel (region)
 def get_edges(rgb_code):
-    WHITE = 255 * 256 * 256 + 255 * 256 + 255
-    t = rgb_code != WHITE
+    tb = (rgb_code[:, :, 0] != 255)
+    tg = (rgb_code[:, :, 1] != 255)
+    tr = (rgb_code[:, :, 2] != 255)
+    t = tb | tg | tr
     return BoundingBox.get_edges(t)
 
 
@@ -132,19 +134,31 @@ def atlas_tif(atlas_tif_path):
     return cv2.imread(atlas_tif_path, cv2.IMREAD_UNCHANGED)
 
 
+# get ending cell boundaries
+def stops(grid_thresh_img, y, x, gcs, hemi, edges_tup):
+    (xmin, xmax, ymin, ymax) = edges_tup
+    midx = grid_thresh_img.shape[1] / 2
+    y_stop = min(y + gcs, ymax)
+    if hemi == 'l':
+        x_stop = min(x + gcs, midx)
+    if hemi == 'r':
+        offset_x = (midx / gcs + 1) * gcs + 1
+        if x < offset_x and midx % gcs > 0:
+            x_stop = min(x + gcs, offset_x)
+        else:
+            x_stop = min(x + gcs, xmax)
+    return (x_stop, y_stop)
+
+
 # return img corresponding to gcs size squared grid cell at row, col
 #  edges_tup - (xmin, xmax, ymin, ymax)
 #  row - row in pixels (not grid cells)
 #  col - col in pixels (not grid cells)
 #  gcs - grid cell size
 def cell_img(grid_thresh_img, y, x, gcs, hemi, edges_tup):
-    (xmin, xmax, ymin, ymax) = edges_tup
-    midx = grid_thresh_img.shape[1] / 2
-    y_stop = min(x + gcs, ymax)
-    if hemi == 'l':
-        x_stop = min(x + gcs, midx)
-    if hemi == 'r':
-        x_stop = min(x + gcs, xmax)
+    (x_stop, y_stop) = stops(grid_thresh_img=grid_thresh_img,
+                             y=y, x=x, gcs=gcs, hemi=hemi,
+                             edges_tup=edges_tup)
     cell_img = grid_thresh_img[y:y_stop, x:x_stop]
     return cell_img
 
@@ -152,20 +166,17 @@ def cell_img(grid_thresh_img, y, x, gcs, hemi, edges_tup):
 # similar to cell_img(), but paste cell_img at location
 #  idx_lst is the index into the color channel... hmmm, could be confusing
 #  does not return anything
-def paste_cell_img(cell_img, y, x, gcs, hemi, edges_tup, idx, grid_thresh_img):
-    assert len(grid_thresh_img.shape) > 2, \
-        "grid_thresh_img {} channels, expected 4".format(
-            len(grid_thresh_img.shape))
-    assert grid_thresh_img.shape[2] == 4, \
-        "grid_thresh_img {} channels, expected 4".format(
-            len(grid_thresh_img.shape[2]))
-    (xmin, xmax, ymin, ymax) = edges_tup
-    midx = grid_thresh_img.shape[1] / 2
-    y_stop = min(x + gcs, ymax)
-    if hemi == 'l':
-        x_stop = min(x + gcs, midx)
-    if hemi == 'r':
-        x_stop = min(x + gcs, xmax)
+def paste_cell_img(cell_img, y, x, gcs, hemi, edges_tup, grid_thresh_img):
+    assert len(grid_thresh_img.shape) == len(cell_img.shape), \
+        "grid_thresh_img {} channels, expected {}".format(
+            len(grid_thresh_img.shape), len(cell_img.shape))
+    if len(grid_thresh_img.shape) > 2:
+        assert grid_thresh_img.shape[2] == cell_img.shape[2], \
+            "grid_thresh_img {} channels, expected {}".format(
+                grid_thresh_img.shape[2], cell_img.shape[2])
+    (x_stop, y_stop) = stops(grid_thresh_img=grid_thresh_img,
+                             y=y, x=x, gcs=gcs, hemi=hemi,
+                             edges_tup=edges_tup)
     grid_thresh_img[y:y_stop, x:x_stop] = cell_img
 
 
