@@ -73,4 +73,5 @@ class RunSmokeTests(unittest.TestCase):
                                     format(exp_content_path,
                                            output_path))
 
-                os.remove(cmd_dct['OUTPUT_PATH'])
+                for idx, output_path in enumerate(output_path_lst):
+                    os.remove(output_path)
