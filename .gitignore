@@ -5,3 +5,4 @@
 *.sh.o*
 in_data
 tmp
+old_*
