@@ -163,17 +163,21 @@ def cell_img(grid_thresh_img, y, x, gcs, hemi, edges_tup):
     return cell_img
 
 
+# sort of complicated to determining number of channels
+def num_channels(img):
+    if len(img.shape) <= 2:
+        return 1
+    else:
+        return img.shape[2]
+
+
 # similar to cell_img(), but paste cell_img at location
 #  idx_lst is the index into the color channel... hmmm, could be confusing
 #  does not return anything
 def paste_cell_img(cell_img, y, x, gcs, hemi, edges_tup, grid_thresh_img):
-    assert len(grid_thresh_img.shape) == len(cell_img.shape), \
-        "grid_thresh_img {} channels, expected {}".format(
-            len(grid_thresh_img.shape), len(cell_img.shape))
-    if len(grid_thresh_img.shape) > 2:
-        assert grid_thresh_img.shape[2] == cell_img.shape[2], \
-            "grid_thresh_img {} channels, expected {}".format(
-                grid_thresh_img.shape[2], cell_img.shape[2])
+    assert num_channels(grid_thresh_img) == num_channels(cell_img), \
+        "grid_thresh_img {} channels, cell_img {}".format(
+            num_channels(grid_thresh_img), num_channels(cell_img))
     (x_stop, y_stop) = stops(grid_thresh_img=grid_thresh_img,
                              y=y, x=x, gcs=gcs, hemi=hemi,
                              edges_tup=edges_tup)
@@ -196,21 +200,26 @@ def gray2bgra_tif(tif_path):
     return cv2.cvtColor(gray_img, cv2.COLOR_GRAY2BGRA)
 
 
-# assume cell_img is one channel
+# if cell_img is one channel then convert
 #  returns BGRA image
 def clr_thresh(cell_img, clr_idx):
-    assert len(cell_img.shape) <= 2, \
-        "cell_img {} channels, expected 2".format(cell_img.shape[2])
-    # got this technique from
-    #  https://stackoverflow.com/questions/14786179/
-    #  how-to-convert-a-1-channel-image-into-a-3-channel-with-opencv2
+    if(num_channels(cell_img) != 4):
+        # got this technique from
+        #  https://stackoverflow.com/questions/14786179/
+        #  how-to-convert-a-1-channel-image-into-a-3-channel-with-opencv2
+        new_img = cv2.cvtColor(cell_img, cv2.COLOR_GRAY2BGRA)
+
+    else:
+        new_img = cell_img
+
+    assert num_channels(new_img) == 4, "cell image only has {} channels".\
+        format(num_channels(new_img))
+
     clr_arr = [[0,   0,   255, 255],
                [0,   255,   0, 255],
                [255,    0,  0, 255]]
-    assert clr_idx < len(clr_arr), "Only {} colors supported at this time".\
-        format(len(clr_arr))
-
-    new_img = cv2.cvtColor(cell_img, cv2.COLOR_GRAY2BGRA)
+    assert clr_idx < len(clr_arr), "Only {} colors supported".format(
+        len(clr_arr))
 
     new_img[np.where((new_img == [0, 0, 0, 255]).all(axis=2))] = \
         clr_arr[clr_idx]

@@ -2,9 +2,11 @@
 import argparse
 import os
 import cic_outspector
+import cic_utils
 import sys
 import cv2
 import cic_overlap
+import cPickle as pickle
 
 
 def main():
@@ -109,9 +111,23 @@ def main():
         output_img_path = cic_outspector.output_roi_filter_tif_path(
             thresh_dir_path=thresh_dir_path,
             thresh_tif_path=thresh_tif_path)
+
         cic_overlap.write_overlap_csv(overlap_tup=roi_filter_overlap_tup,
                                       output_csv_path=output_csv_path)
         cv2.imwrite(output_img_path, roi_filter_thresh_img)
+
+        if verbose:
+            print("Wrote roi filtered overlap to {}".format(output_csv_path))
+            print("Wrote roi filtered image  to {}".format(output_img_path))
+
+        output_pickle_path = cic_utils.pickle_path(output_csv_path)
+        pickle.dump(args, open(output_pickle_path, "wb"))
+        if verbose:
+            print("Wrote pickle args to {}".format(output_pickle_path))
+        output_pickle_path = cic_utils.pickle_path(output_img_path)
+        pickle.dump(args, open(output_pickle_path, "wb"))
+        if verbose:
+            print("Also wrote pickle args to {}".format(output_pickle_path))
 
 
 if __name__ == "__main__":

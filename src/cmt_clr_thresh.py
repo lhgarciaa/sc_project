@@ -2,8 +2,10 @@
 import argparse
 import os
 import cic_outspector
+import cic_utils
 import sys
 import cv2
+import cPickle as pickle
 
 
 def main():
@@ -25,10 +27,6 @@ def main():
     parser.add_argument('-ch', '--channel',
                         help='Case channel to write to output',
                         required=True)
-    parser.add_argument('-o', '--output_img_path',
-                        help='Output path of Tiff containing community colored'
-                        ' threshold labelling',
-                        required=True)
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
@@ -48,7 +46,6 @@ def main():
         ch=ch)
     assert os.path.isdir(overlap_ch_dir_path),\
         "no overlap dir {}".format(overlap_ch_dir_path)
-    output_img_path = args['output_img_path']
 
     gcs = args['grid_cell_size']
     lvl = args['atlas_level']
@@ -75,6 +72,9 @@ def main():
             ch=ch)
         assert thresh_tif_path is not None, "threshold {} not found".format(
             thresh_tif_path)
+        output_img_path = cic_outspector.output_cmt_clr_tif_path(
+            thresh_dir_path=thresh_dir_path,
+            thresh_tif_path=thresh_tif_path)
 
         overlap_dir_path = cic_outspector.overlap_dir_path(
             case_dir=case_dir,
@@ -98,8 +98,14 @@ def main():
             atlas_tif_path=atlas_tif_path,
             gcs=int(gcs),
             lvl=int(lvl),
-            hemi='r')
+            hemi='r',
+            verbose=verbose)
         cv2.imwrite(output_img_path, cmt_clr_thresh_img)
+
+        output_pickle_path = cic_utils.pickle_path(output_img_path)
+        pickle.dump(args, open(output_pickle_path, "wb"))
+        if verbose:
+            print("Wrote pickle args to {}".format(output_pickle_path))
 
 
 if __name__ == "__main__":
