@@ -39,6 +39,19 @@ def thresh_tif_path(thresh_dir_path, opairs_section, ch):
     return os.path.join(thresh_dir_path, base_tif)
 
 
+def roi_filter_or_thresh_tif_path(thresh_dir_path, opairs_section, ch):
+    or_thresh_tif_path = thresh_tif_path(thresh_dir_path=thresh_dir_path,
+                                         opairs_section=opairs_section,
+                                         ch=ch)
+    roi_filter = output_roi_filter_tif_path(thresh_dir_path=thresh_dir_path,
+                                            thresh_tif_path=or_thresh_tif_path)
+    if os.path.isfile(roi_filter):
+        return roi_filter
+    else:
+        assert(os.path.isfile(or_thresh_tif_path))
+        return or_thresh_tif_path
+
+
 def output_roi_filter_overlap_csv_path(overlap_dir_path, overlap_path):
     new_base = os.path.splitext(os.path.basename(overlap_path))[0] + \
                "_roi_filter" + \
@@ -64,46 +77,6 @@ def atlas_tif_path(lvl):
     pref_str = "{:03}".format(int(lvl))
     base_name = pref_str + '_2013_rgb-01_append.tif'
     return os.path.join('/ifs/loni/faculty/dong/mcp/atlas_roigb', base_name)
-
-
-# an execution_method
-def cmt_clr_thresh_cell(**args):
-    exp_arg_lst = ['cons_cmt_str', 'cell_img', 'y', 'x', 'gcs', 'lvl', 'hemi',
-                   'gt_edges_tup', 'new_grid_thr_img', 'pasted_overlap_rows',
-                   'cons_cmt_csv_path']
-    assert set(exp_arg_lst).issubset(args.keys()), \
-        "Uh-oh, did not find {} in {}".format(
-            list(set(exp_arg_lst).difference(args.keys())), args.keys())
-
-    # get cmt index of overlap
-    cmt_idx = cic_plot.cmt_idx(cons_cmt_str=args['cons_cmt_str'],
-                               lvl=args['lvl'],
-                               hemi=args['hemi'],
-                               col=args['x']/args['gcs'],
-                               row=args['y']/args['gcs'])
-    # if overlap value not in any community then error
-    assert cmt_idx is not None, \
-        "Found cmt {} in lvl {} but {} not in {}".format(
-            (args['hemi'],
-             args['x']/args['gcs'],
-             args['y']/args['gcs']),
-            args['lvl'],
-            (args['lvl'], args['hemi'],
-             args['x']/args['gcs'], args['y']/args['gcs']),
-            args['cons_cmt_csv_path'])
-
-    # color cell image by community
-    cmt_clr_cell_img = cic_plot.clr_thresh(cell_img=args['cell_img'],
-                                           clr_idx=cmt_idx)
-    # paste cell image into grid_thresh_img
-    cic_plot.paste_cell_img(
-        cell_img=cmt_clr_cell_img,
-        y=args['y'],
-        x=args['x'],
-        gcs=args['gcs'],
-        hemi=args['hemi'],
-        edges_tup=args['gt_edges_tup'],
-        grid_thresh_img=args['new_grid_thr_img'])
 
 
 # an execution_method
@@ -143,10 +116,17 @@ def roi_filter_thresh_ovlp(roi_filter_csv_path, thresh_tif_path, overlap_path,
     if verbose:
         print("ROI filtering {}".format(opairs_section))
 
+    roi_filter_tup = \
+        cic_overlap.read_overlap_csv(input_csv_path=roi_filter_csv_path)
+    (incl_lst, excl_lst) = cic_overlap.incl_excl_tup(
+        roi_filter_csv_tup=roi_filter_tup,
+        opairs_section=opairs_section)
+
     thresh_img = cic_plot.thresh_tif(thresh_tif_path=thresh_tif_path)
     return march_through_ovlp_thresh(
-        cons_cmt_csv_path=None,
-        roi_filter_csv_path=roi_filter_csv_path,
+        cons_cmt_str=None,
+        incl_lst=incl_lst,
+        excl_lst=excl_lst,
         thresh_img=thresh_img,
         overlap_path=overlap_path,
         atlas_tif_path=atlas_tif_path,
@@ -165,10 +145,15 @@ def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path,
     if verbose:
         print("CMT coloring {}".format(thresh_tif_path))
 
+    cons_cmt_str = cic_plot.cons_cmt_str(
+        cons_cmt_csv_path=cons_cmt_csv_path,
+        lvl=lvl)
+
     thresh_img = cic_plot.gray2bgra_tif(tif_path=thresh_tif_path)
     tup = march_through_ovlp_thresh(
-        cons_cmt_csv_path=cons_cmt_csv_path,
-        roi_filter_csv_path=None,
+        cons_cmt_str=cons_cmt_str,
+        incl_lst=None,
+        excl_lst=None,
         thresh_img=thresh_img,
         overlap_path=overlap_path,
         atlas_tif_path=atlas_tif_path,
@@ -181,9 +166,48 @@ def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path,
     return tup[1]  # return just the thresh_img
 
 
+# an execution_method
+def cmt_clr_thresh_cell(**args):
+    exp_arg_lst = ['cons_cmt_str', 'cell_img', 'y', 'x', 'gcs', 'lvl', 'hemi',
+                   'gt_edges_tup', 'new_grid_thr_img', 'pasted_overlap_rows']
+    assert set(exp_arg_lst).issubset(args.keys()), \
+        "Uh-oh, did not find {} in {}".format(
+            list(set(exp_arg_lst).difference(args.keys())), args.keys())
+
+    # get cmt index of overlap
+    cmt_idx = cic_plot.cmt_idx(cons_cmt_str=args['cons_cmt_str'],
+                               lvl=args['lvl'],
+                               hemi=args['hemi'],
+                               col=args['x']/args['gcs'],
+                               row=args['y']/args['gcs'])
+    # if overlap value not in any community then error
+    assert cmt_idx is not None, \
+        "Found cmt {} in lvl {} but {} not in {}".format(
+            (args['hemi'],
+             args['x']/args['gcs'],
+             args['y']/args['gcs']),
+            args['lvl'],
+            (args['lvl'], args['hemi'],
+             args['x']/args['gcs'], args['y']/args['gcs']),
+            'cons_cmt_csv_path')
+
+    # color cell image by community
+    cmt_clr_cell_img = cic_plot.clr_thresh(cell_img=args['cell_img'],
+                                           clr_idx=cmt_idx)
+    # paste cell image into grid_thresh_img
+    cic_plot.paste_cell_img(
+        cell_img=cmt_clr_cell_img,
+        y=args['y'],
+        x=args['x'],
+        gcs=args['gcs'],
+        hemi=args['hemi'],
+        edges_tup=args['gt_edges_tup'],
+        grid_thresh_img=args['new_grid_thr_img'])
+
+
 # returns tup: (overlap_tup, thresh_img)
-def march_through_ovlp_thresh(cons_cmt_csv_path,
-                              roi_filter_csv_path, thresh_img,
+def march_through_ovlp_thresh(cons_cmt_str,
+                              incl_lst, excl_lst, thresh_img,
                               overlap_path, atlas_tif_path, gcs, lvl, hemi,
                               opairs_section, execution_method, verbose):
     assert type(gcs) == int
@@ -191,33 +215,11 @@ def march_through_ovlp_thresh(cons_cmt_csv_path,
     assert type(hemi) == str
 
     # only create cons_cmt_str if needed (because cmt color thresh)
-    cons_cmt_str = None
-    if cons_cmt_csv_path is not None:
-        cons_cmt_str = cic_plot.cons_cmt_str(
-            cons_cmt_csv_path=cons_cmt_csv_path,
-            lvl=lvl)
-    elif verbose:
-        print("cons_cmt_str is None")
-
     overlap_tup = \
         cic_overlap.read_overlap_csv(input_csv_path=overlap_path)
     (meta_dct, header_lst, overlap_rows) = overlap_tup
     dct_gcs = int(meta_dct['Grid Size'])
     dct_lvl = int(meta_dct['ARA Level'])
-
-    # only create roi filter and incl/excl lists if roi filtering
-    roi_filter_tup = None
-    incl_lst = None
-    excl_lst = None
-    if roi_filter_csv_path is not None:
-        roi_filter_tup = \
-            cic_overlap.read_overlap_csv(input_csv_path=roi_filter_csv_path)
-        (incl_lst, excl_lst) = cic_overlap.incl_excl_tup(
-            roi_filter_csv_tup=roi_filter_tup,
-            opairs_section=opairs_section)
-
-    elif verbose:
-        print("roi_filter_csv_path is None")
 
     assert gcs == dct_gcs and lvl == dct_lvl, \
         "{} gcs != {} dct_gcs and {} != {} dct_lvl".format(gcs, dct_gcs,
@@ -242,8 +244,6 @@ def march_through_ovlp_thresh(cons_cmt_csv_path,
         print "(xmin, xmax, ymin, ymax) {}".format(edges_tup)
         print "(gt_xmin, gt_xmax, gt_ymin, gt_ymax) {}".format(gt_edges_tup)
         print "midx {}".format(midx)
-        print "section {} incl_lst excl_lst {}".format(opairs_section,
-                                                       (incl_lst, excl_lst))
 
     if hemi == 'r':
         pasted_overlap_rows = []
@@ -274,7 +274,6 @@ def march_through_ovlp_thresh(cons_cmt_csv_path,
 
                     execution_method(
                         cons_cmt_str=cons_cmt_str,
-                        cons_cmt_csv_path=cons_cmt_csv_path,
                         header_lst=header_lst,
                         overlap_row=overlap_row,
                         incl_lst=incl_lst,

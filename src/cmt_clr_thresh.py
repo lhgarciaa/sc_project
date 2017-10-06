@@ -60,13 +60,14 @@ def main():
     if opairs_section is None:
         if verbose:
             print("No opairs.lst section found for ARA level {}".format(lvl))
+            print("exiting without error")
         sys.exit(0)
     # else have opairs section now get threshold tif
     else:
         thresh_dir_path = cic_outspector.thresh_dir_path(
             case_dir=case_dir,
             ch=ch)
-        thresh_tif_path = cic_outspector.thresh_tif_path(
+        thresh_tif_path = cic_outspector.roi_filter_or_thresh_tif_path(
             thresh_dir_path=thresh_dir_path,
             opairs_section=opairs_section,
             ch=ch)
@@ -79,6 +80,9 @@ def main():
         overlap_dir_path = cic_outspector.overlap_dir_path(
             case_dir=case_dir,
             ch=ch)
+        # note, we can use the original overlap file for coloring
+        #  even in the case of roi filter input since original overlap
+        #  file will contain more than the overlap info we need
         overlap_path = cic_outspector.overlap_path(
             overlap_dir_path=overlap_dir_path,
             opairs_section=opairs_section,

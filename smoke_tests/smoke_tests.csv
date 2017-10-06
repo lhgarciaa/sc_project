@@ -2,8 +2,12 @@ COMMAND, OUTPUT_PATH, EXP_CONTENT_PATH
 echo "hi there" > smoke_tests/hi_there.txt, smoke_tests/hi_there.txt, smoke_tests/exp_hi_there.txt
 # test ROI FILTER for SW120228-02B al 100 gcs 350 channel 2
 src/roi_filter_thresh_ovlp.py -v -ic test_data/roi_filter_thresh_ovlp/SW120228-02B_roi_filter_ch2_grid-350.csv -ch 2 -gcs 350 -lvl 100 -cd test_data/roi_filter_thresh_ovlp/SW120228-02B/, test_data/roi_filter_thresh_ovlp/SW120228-02B/threshold/channels/2/SW120228-02B_3_05_ch2-th_roi_filter.tif test_data/roi_filter_thresh_ovlp/SW120228-02B/overlap/2/SW120228-02B_3_05_ch2_grid-350_roi_filter.csv, smoke_tests/exp_SW120228-02B_3_05_ch2-th_roi_filter.tif smoke_tests/exp_SW120228-02B_3_05_ch2_grid-350_roi_filter.csv
-# test COLORIZE THRESHOLD for SW120228-02B al 100 gcs 350 channel 2
+# test COLORIZE THRESHOLD for JUST NORMAL SW120228-02B 100 gcs 350 ch 2
 python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 2 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/2/SW120228-02B_3_05_ch2-th_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch2-th_cmt_clr.tif
+# test colorize threshold for NORMAL AND FILTERED SW120228-02B 100 gcs 350 ch 3
+python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 3 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/3/SW120228-02B_3_05_ch3-th_roi_filter_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch3-th_roi_filter_cmt_clr.tif
+# test colorize threshold for ONLY FILTERED SW120228-02B 100 gcs 350 ch 4
+python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 4 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/4/SW120228-02B_3_05_ch4-th_roi_filter_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch4-th_roi_filter_cmt_clr.tif
 # test aggregating CHANNEL 2 overlap
 python src/agg_overlap.py -i "test_data/agg_overlap/SW010101-01A/overlap/2/SW010101-01A_1_0*.csv" -o smoke_tests/SW010101-01A_ch2_grid-035.csv, smoke_tests/SW010101-01A_ch2_grid-035.csv, smoke_tests/exp_SW010101-01A_ch2_grid-035.csv
 # test aggregating CASES overlap

@@ -62,6 +62,7 @@ def main():
     #  idea is that we can call this from levels 1 - 132
     if opairs_section is None:
         print("No opairs.lst section found for ARA level {}".format(lvl))
+        print("exiting without error")
         sys.exit(0)
 
     else:
