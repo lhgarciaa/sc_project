@@ -14,7 +14,7 @@ def overlap_dir_path(case_dir, ch):
 def opairs_section(case_dir, lvl):
     assert os.path.isdir(case_dir)
     opairs_path = os.path.join(case_dir, 'opairs.lst')
-    with open(opairs_path) as opairs_lst:
+    with open(opairs_path, 'r') as opairs_lst:
         rows = opairs_lst.readlines()
     for row in rows:
         cols = row.split()
