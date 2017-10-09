@@ -224,3 +224,8 @@ def clr_thresh(cell_img, clr_idx):
     new_img[np.where((new_img == [0, 0, 0, 255]).all(axis=2))] = \
         clr_arr[clr_idx]
     return new_img
+
+
+def erode(img):
+    kernel = np.ones((50, 50), np.uint8)
+    return cv2.erode(img, kernel, iterations=1)

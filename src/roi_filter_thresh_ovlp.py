@@ -7,6 +7,7 @@ import sys
 import cv2
 import cic_overlap
 import cPickle as pickle
+import cic_plot
 
 
 def main():
@@ -117,6 +118,16 @@ def main():
         cic_overlap.write_overlap_csv(overlap_tup=roi_filter_overlap_tup,
                                       output_csv_path=output_csv_path)
         cv2.imwrite(output_img_path, roi_filter_thresh_img)
+
+        # for cases of retrograde output, write additional image since
+        #  degenerate image is difficult to see
+        if "degenerate" in output_img_path:
+            visual_path = cic_outspector.visual_path(
+                thresh_dir_path=thresh_dir_path,
+                thresh_tif_path=output_img_path)
+            eroded_roi_filter_thresh_img = cic_plot.erode(
+                img=roi_filter_thresh_img)
+            cv2.imwrite(visual_path, eroded_roi_filter_thresh_img)
 
         if verbose:
             print("Wrote roi filtered overlap to {}".format(output_csv_path))

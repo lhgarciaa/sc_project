@@ -89,6 +89,14 @@ def output_roi_filter_overlap_csv_path(overlap_dir_path, overlap_path):
     return os.path.join(overlap_dir_path, new_base)
 
 
+# simply appends "_visual" to end of base name before extension
+def visual_path(thresh_dir_path, thresh_tif_path):
+    new_base = os.path.splitext(os.path.basename(thresh_tif_path))[0] + \
+               "_visual" + \
+               os.path.splitext(os.path.basename(thresh_tif_path))[1]
+    return os.path.join(thresh_dir_path, new_base)
+
+
 def output_roi_filter_tif_path(thresh_dir_path, thresh_tif_path):
     new_base = os.path.splitext(os.path.basename(thresh_tif_path))[0] + \
                "_roi_filter" + \
