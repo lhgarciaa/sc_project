@@ -7,7 +7,7 @@ class TestCicOverlap(unittest.TestCase):
     def setUp(self):
         self.test_overlap_csv_path = 'test_data/test_overlap_csv.csv'
         self.test_write_overlap_csv_path = 'test_data/test_write_overlap.csv'
-        self.roi_filter_csv = 'test_data/roi_filter_thresh_ovlp/SW120228-02B_roi_filter_ch2_grid-350.csv'  # noqa
+        self.roi_filter_csv = 'test_data/roi_filter_thresh_ovlp/SW120228-02B/SW120228-02B_roi_filter_ch2_grid-350.csv'  # noqa
         """
         Metalines: 10
         Project Name: SW010101-01A

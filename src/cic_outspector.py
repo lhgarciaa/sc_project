@@ -29,6 +29,20 @@ def overlap_path(overlap_dir_path, opairs_section, ch, gcs):
     return os.path.join(overlap_dir_path, base_csv)
 
 
+def cellcount_or_overlap_path(overlap_dir_path, opairs_section, ch, gcs):
+    base_csv = opairs_section + '_ch' + ch + '_grid-' + gcs + '.csv'
+    or_overlap_path = os.path.join(overlap_dir_path, base_csv)
+
+    cellcount_base = \
+        opairs_section + '_ch' + ch + '_grid-' + gcs + '_cellcount.csv'
+    cellcount_path = os.path.join(overlap_dir_path, cellcount_base)
+    if os.path.isfile(cellcount_path):
+        return cellcount_path
+    else:
+        assert(os.path.isfile(or_overlap_path))
+        return or_overlap_path
+
+
 def thresh_dir_path(case_dir, ch):
     assert os.path.isdir(case_dir)
     return os.path.join(case_dir, 'threshold/channels/' + ch)

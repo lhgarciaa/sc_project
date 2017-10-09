@@ -55,8 +55,9 @@ def main():
     opairs_section = cic_outspector.opairs_section(case_dir=case_dir,
                                                    lvl=lvl)
     if verbose:
-        "Retrieved section {} from case dir {}".format(opairs_section,
-                                                       case_dir)
+        print("Using level {} grid cell size {}".format(lvl, gcs))
+        print("retrieved section {} from case dir {}".format(opairs_section,
+                                                             case_dir))
 
     # check that we have section for ARA level, if not exit WITHOUT error
     #  idea is that we can call this from levels 1 - 132
@@ -82,7 +83,7 @@ def main():
             ch=ch)
         assert os.path.isdir(overlap_dir_path), \
             "No overlap dir {}".format(overlap_dir_path)
-        overlap_path = cic_outspector.overlap_path(
+        overlap_path = cic_outspector.cellcount_or_overlap_path(
             overlap_dir_path=overlap_dir_path,
             opairs_section=opairs_section,
             ch=ch,
