@@ -35,9 +35,9 @@ def cellcount_or_overlap_path(overlap_dir_path, opairs_section, ch, gcs):
 
     cellcount_base = \
         opairs_section + '_ch' + ch + '_grid-' + gcs + '_cellcount.csv'
-    cellcount_path = os.path.join(overlap_dir_path, cellcount_base)
-    if os.path.isfile(cellcount_path):
-        return cellcount_path
+    cellcount = os.path.join(overlap_dir_path, cellcount_base)
+    if os.path.isfile(cellcount):
+        return cellcount
     else:
         assert(os.path.isfile(or_overlap_path))
         return or_overlap_path
@@ -53,10 +53,26 @@ def thresh_tif_path(thresh_dir_path, opairs_section, ch):
     return os.path.join(thresh_dir_path, base_tif)
 
 
+def degenerate_or_thresh_tif_path(thresh_dir_path, opairs_section, ch):
+    base_tif = opairs_section + '_ch' + ch + '-th.tif'
+    or_thresh_tif_path = os.path.join(thresh_dir_path, base_tif)
+
+    degenerate_base = opairs_section + '_ch' + ch + '-degenerate.tif'
+    degenerate = os.path.join(thresh_dir_path, degenerate_base)
+
+    if os.path.isfile(degenerate):
+        return degenerate
+    else:
+        assert os.path.isfile(or_thresh_tif_path)
+        return or_thresh_tif_path
+
+
+# check for degenrate here, too
 def roi_filter_or_thresh_tif_path(thresh_dir_path, opairs_section, ch):
-    or_thresh_tif_path = thresh_tif_path(thresh_dir_path=thresh_dir_path,
-                                         opairs_section=opairs_section,
-                                         ch=ch)
+    or_thresh_tif_path = degenerate_or_thresh_tif_path(
+        thresh_dir_path=thresh_dir_path,
+        opairs_section=opairs_section,
+        ch=ch)
     roi_filter = output_roi_filter_tif_path(thresh_dir_path=thresh_dir_path,
                                             thresh_tif_path=or_thresh_tif_path)
     if os.path.isfile(roi_filter):

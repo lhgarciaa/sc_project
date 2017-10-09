@@ -72,7 +72,7 @@ def main():
             ch=ch)
         assert os.path.isdir(thresh_dir_path), \
             "No threshold dir {}".format(thresh_dir_path)
-        thresh_tif_path = cic_outspector.thresh_tif_path(
+        thresh_tif_path = cic_outspector.degenerate_or_thresh_tif_path(
             thresh_dir_path=thresh_dir_path,
             opairs_section=opairs_section,
             ch=ch)
