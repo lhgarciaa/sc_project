@@ -145,6 +145,7 @@ def main():
         if verbose:
             print("Wrote roi filtered overlap to {}".format(output_csv_path))
             print("Wrote roi filtered image  to {}".format(output_img_path))
+            print("Wrote visual image  to {}".format(visual_path))
 
         output_pickle_path = cic_utils.pickle_path(output_csv_path)
         pickle.dump(args, open(output_pickle_path, "wb"))
