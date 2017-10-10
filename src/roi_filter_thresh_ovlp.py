@@ -121,13 +121,26 @@ def main():
 
         # for cases of retrograde output, write additional image since
         #  degenerate image is difficult to see
-        if "degenerate" in output_img_path:
-            visual_path = cic_outspector.visual_path(
+        visual_path = cic_outspector.visual_path(
                 thresh_dir_path=thresh_dir_path,
                 thresh_tif_path=output_img_path)
+
+        grid_ref_tif_path = cic_outspector.grid_ref_tif_path(
+             overlap_path=overlap_path, ch=ch)
+        assert os.path.isfile(grid_ref_tif_path), \
+            "No grid reference tif found {}".format(grid_ref_tif_path)
+
+        grid_ref_img = cv2.imread(grid_ref_tif_path, cv2.IMREAD_UNCHANGED)
+
+        if "degenerate" in output_img_path:
             eroded_roi_filter_thresh_img = cic_plot.erode(
                 img=roi_filter_thresh_img)
-            cv2.imwrite(visual_path, eroded_roi_filter_thresh_img)
+            visual_img = cic_plot.compose(eroded_roi_filter_thresh_img,
+                                          grid_ref_img)
+        else:
+            visual_img = cic_plot.compose(roi_filter_thresh_img,
+                                          grid_ref_img)
+            cv2.imwrite(visual_path, visual_img)
 
         if verbose:
             print("Wrote roi filtered overlap to {}".format(output_csv_path))

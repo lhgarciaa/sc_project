@@ -24,6 +24,13 @@ def opairs_section(case_dir, lvl):
     return None
 
 
+def grid_ref_tif_path(overlap_path, ch):
+    return overlap_path.\
+        replace("_ch{}".format(ch), "").\
+        replace("_cellcount", "").\
+        replace(".csv", "_ref.tif")
+
+
 def overlap_path(overlap_dir_path, opairs_section, ch, gcs):
     base_csv = opairs_section + '_ch' + ch + '_grid-' + gcs + '.csv'
     return os.path.join(overlap_dir_path, base_csv)
