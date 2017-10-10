@@ -55,6 +55,9 @@ if [ -e $case_dir ]; then
 	mkdir -p $dest_ovlp_dir
 	echo "Copying csvs from $src_ovlp_dir"
 	cp $src_ovlp_dir/*.csv $dest_ovlp_dir
+	echo "Copying tifs from $src_ovlp_dir"
+	cp $src_ovlp_dir/*.tif $dest_ovlp_dir
+
     else
 	echoerr "ERROR: overlap directory '$src_ovlp_dir' not found"
     fi

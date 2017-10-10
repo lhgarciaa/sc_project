@@ -140,7 +140,7 @@ def main():
         else:
             visual_img = cic_plot.compose(roi_filter_thresh_img,
                                           grid_ref_img)
-            cv2.imwrite(visual_path, visual_img)
+        cv2.imwrite(visual_path, visual_img)
 
         if verbose:
             print("Wrote roi filtered overlap to {}".format(output_csv_path))
