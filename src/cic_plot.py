@@ -205,9 +205,6 @@ def compose(thresh_img, ref_img):
     assert num_channels(bgra_thresh_img) == num_channels(ref_img), \
         "thresh_img {} channels, ref_img {}".format(
             num_channels(bgra_thresh_img), num_channels(ref_img))
-    # set all white to transparent
-    #    alpha_thresh_img = [np.where((thresh_img == [255, 255, 255, 255]).all(
-    #        axis=2))] = [255, 255, 255, 0]
     return cv2.bitwise_and(bgra_thresh_img, ref_img)
 
 
