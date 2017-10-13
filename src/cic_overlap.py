@@ -106,6 +106,9 @@ def should_incl_not_excl(header_lst, overlap_row, incl_lst, excl_lst):
     if len(incl_lst) > 0:
         for region in regions:
             if region in incl_lst:
+                print "including {} because {} in include list".\
+                    format(regions, region)
+
                 return True
         # if no region was in inclusion list, then return false
         return False

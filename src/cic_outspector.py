@@ -158,14 +158,17 @@ def check_and_paste(**args):
 def roi_filter_thresh_ovlp(roi_filter_csv_path, thresh_tif_path, overlap_path,
                            atlas_tif_path, gcs, lvl, hemi, opairs_section,
                            verbose):
-    if verbose:
-        print("ROI filtering {}".format(opairs_section))
-
     roi_filter_tup = \
         cic_overlap.read_overlap_csv(input_csv_path=roi_filter_csv_path)
     (incl_lst, excl_lst) = cic_overlap.incl_excl_tup(
         roi_filter_csv_tup=roi_filter_tup,
         opairs_section=opairs_section)
+
+    if verbose:
+        print("ROI filtering {}\nusing roi filter csv {}".format(
+            opairs_section,
+            roi_filter_csv_path))
+        print("include list {}\nexclude list {}".format(incl_lst, excl_lst))
 
     thresh_img = cic_plot.thresh_tif(thresh_tif_path=thresh_tif_path)
     return march_through_ovlp_thresh(

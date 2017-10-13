@@ -8,6 +8,7 @@ import cv2
 import cic_overlap
 import cPickle as pickle
 import cic_plot
+import datetime
 
 
 def main():
@@ -34,6 +35,11 @@ def main():
 
     args = vars(parser.parse_args())
     verbose = args['verbose']
+
+    if verbose:
+        print "{} {}\nargs {}".format(datetime.datetime.now(),
+                                      sys.argv[0],
+                                      args)
 
     input_csv_path = args['input_csv']
     if not os.path.isfile(input_csv_path):
