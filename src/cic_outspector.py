@@ -273,7 +273,11 @@ def march_through_ovlp_thresh(cons_cmt_str,
         "{} gcs != {} dct_gcs and {} != {} dct_lvl".format(gcs, dct_gcs,
                                                            lvl, dct_lvl)
 
+    if verbose:
+        print("getting atlas image {}".format(atlas_tif_path))
     atlas_img = cic_plot.atlas_tif(atlas_tif_path)
+    if verbose:
+        print("getting edges_tup")
     edges_tup = cic_plot.get_edges(atlas_img)
     (xmin, xmax, ymin, ymax) = edges_tup
 
@@ -300,6 +304,9 @@ def march_through_ovlp_thresh(cons_cmt_str,
 
         while x < gt_xmax:
             y = 0
+            if verbose:
+                print("calling {} on col {}".format(
+                    execution_method.func_name, x/gcs))
             while y < gt_ymax:
                 # get cell_img from y, x plus gcs
                 cell_img = cic_plot.cell_img(grid_thresh_img=grid_thr_img,

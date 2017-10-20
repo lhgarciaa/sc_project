@@ -25,6 +25,11 @@ class TestCicPlot(unittest.TestCase):
         (xmin, xmax, ymin, ymax) = self.edges_tup
         self.grid_thresh_img = img[ymin:ymax, xmin:xmax]
 
+    def test_cons_cmt_str(self):
+        cons_cmt_str = cic_plot.cons_cmt_str(self.cons_cmt_str_csv_path,
+                                             self.lvl)
+        self.assertEqual(self.exp_cons_cmt_str, cons_cmt_str)
+
     def test_cell_img(self):
         cell_img = cic_plot.cell_img(grid_thresh_img=self.grid_thresh_img,
                                      y=0, x=0, gcs=self.gcs, hemi='r',
@@ -32,11 +37,6 @@ class TestCicPlot(unittest.TestCase):
         self.assertIsNotNone(cell_img)
         height_width_tup = cell_img.shape[:2]
         self.assertEqual((self.gcs, self.gcs), height_width_tup)
-
-    def test_cons_cmt_str(self):
-        cons_cmt_str = cic_plot.cons_cmt_str(self.cons_cmt_str_csv_path,
-                                             self.lvl)
-        self.assertEqual(self.exp_cons_cmt_str, cons_cmt_str)
 
     def test_cmt_idx(self):
         cons_cmt_str = cic_plot.cons_cmt_str(self.cons_cmt_str_csv_path,

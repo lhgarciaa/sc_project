@@ -200,12 +200,54 @@ def gray2bgra_tif(tif_path):
     return cv2.cvtColor(gray_img, cv2.COLOR_GRAY2BGRA)
 
 
+def visual_img(grid_ref_tif_path, output_img_path, to_erode_compose_img):
+    # read and convert ref img as BGR
+    grid_ref_img = cv2.imread(grid_ref_tif_path, cv2.IMREAD_UNCHANGED)
+
+    if "degenerate" in output_img_path:
+        eroded_img = erode(img=to_erode_compose_img)
+        visual_img = compose(eroded_img,
+                             grid_ref_img)
+    else:
+        visual_img = compose(to_erode_compose_img,
+                             grid_ref_img)
+    return visual_img
+
+
+# expects BGRA thresh_img (or will convert) and BGR ref_img (will not convert)
 def compose(thresh_img, ref_img):
-    bgra_thresh_img = cv2.cvtColor(thresh_img, cv2.COLOR_GRAY2BGR)
-    assert num_channels(bgra_thresh_img) == num_channels(ref_img), \
-        "thresh_img {} channels, ref_img {}".format(
-            num_channels(bgra_thresh_img), num_channels(ref_img))
-    return cv2.bitwise_and(bgra_thresh_img, ref_img)
+    assert num_channels(ref_img) == 3, \
+        "expected 3 channels in ref_img found {}".format(num_channels(ref_img))
+
+    # convert to BGRA thresh img if needed
+    if num_channels(thresh_img) < 4:
+        bgra_thresh_img = cv2.cvtColor(thresh_img, cv2.COLOR_GRAY2BGRA)
+    else:
+        bgra_thresh_img = thresh_img
+
+    # convert all white of threshold image to transparent
+    bgra_thresh_img[np.where(
+        (bgra_thresh_img == [255, 255, 255, 255]).all(axis=2))] = \
+        [255, 255, 255, 0]
+
+    # now create masks and return blend
+    overlay_img = bgra_thresh_img[:, :, :3]
+    overlay_msk = bgra_thresh_img[:, :, 3:]
+    background_msk = 255 - overlay_msk  # everything background is 255
+
+    # convert masks to 3 channel
+    overlay_msk = cv2.cvtColor(overlay_msk, cv2.COLOR_GRAY2BGR)
+    background_msk = cv2.cvtColor(background_msk, cv2.COLOR_GRAY2BGR)
+
+    # now the magical part, convert to 0 - 1 and multiply with mask
+    msked_ref_img = \
+        (ref_img * (1 / 255.0)) * (background_msk * (1 / 255.0))
+    msked_thresh_img = \
+        (overlay_img * (1 / 255.0)) * (overlay_msk * (1 / 255.0))
+
+    return np.uint8(cv2.addWeighted(msked_ref_img, 255.0,
+                                    msked_thresh_img, 255.0,
+                                    0.0))
 
 
 # if cell_img is one channel then convert

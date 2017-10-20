@@ -6,6 +6,7 @@ import cic_utils
 import sys
 import cv2
 import cPickle as pickle
+import cic_plot
 
 
 def main():
@@ -83,7 +84,7 @@ def main():
         # note, we can use the original overlap file for coloring
         #  even in the case of roi filter input since original overlap
         #  file will contain more than the overlap info we need
-        overlap_path = cic_outspector.overlap_path(
+        overlap_path = cic_outspector.cellcount_or_overlap_path(
             overlap_dir_path=overlap_dir_path,
             opairs_section=opairs_section,
             ch=ch,
@@ -104,7 +105,29 @@ def main():
             lvl=int(lvl),
             hemi='r',
             verbose=verbose)
+
+        if verbose:
+            print("writing {}".format(output_img_path))
         cv2.imwrite(output_img_path, cmt_clr_thresh_img)
+
+        # write additional image since
+        #  degenerate retrograde image is difficult to see
+        #  and both antero and retro difficult to ascertain location on atlas
+        visual_path = cic_outspector.visual_path(
+                thresh_dir_path=thresh_dir_path,
+                thresh_tif_path=output_img_path)
+        grid_ref_tif_path = cic_outspector.grid_ref_tif_path(
+            overlap_path=overlap_path, ch=ch)
+        assert os.path.isfile(grid_ref_tif_path), \
+            "No grid reference tif found {}".format(grid_ref_tif_path)
+        if verbose:
+            print("calculating, writing visual image {}".format(visual_path))
+        visual_img = cic_plot.visual_img(
+            grid_ref_tif_path=grid_ref_tif_path,
+            output_img_path=output_img_path,
+            to_erode_compose_img=cmt_clr_thresh_img)
+
+        cv2.imwrite(visual_path, visual_img)
 
         output_pickle_path = cic_utils.pickle_path(output_img_path)
         pickle.dump(args, open(output_pickle_path, "wb"))

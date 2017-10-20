@@ -90,6 +90,7 @@ def main():
             ch=ch)
         assert os.path.isdir(overlap_dir_path), \
             "No overlap dir {}".format(overlap_dir_path)
+        # get cell count or overlap path, in other words retrograde or antero
         overlap_path = cic_outspector.cellcount_or_overlap_path(
             overlap_dir_path=overlap_dir_path,
             opairs_section=opairs_section,
@@ -125,8 +126,9 @@ def main():
                                       output_csv_path=output_csv_path)
         cv2.imwrite(output_img_path, roi_filter_thresh_img)
 
-        # for cases of retrograde output, write additional image since
-        #  degenerate image is difficult to see
+        # write additional image since
+        #  degenerate retrograde image is difficult to see
+        #  and both antero and retro difficult to ascertain location on atlas
         visual_path = cic_outspector.visual_path(
                 thresh_dir_path=thresh_dir_path,
                 thresh_tif_path=output_img_path)
@@ -135,17 +137,13 @@ def main():
              overlap_path=overlap_path, ch=ch)
         assert os.path.isfile(grid_ref_tif_path), \
             "No grid reference tif found {}".format(grid_ref_tif_path)
+        if verbose:
+            print("calculating, writing visual image {}".format(visual_path))
+        visual_img = cic_plot.visual_img(
+            grid_ref_tif_path=grid_ref_tif_path,
+            output_img_path=output_img_path,
+            to_erode_compose_img=roi_filter_thresh_img)
 
-        grid_ref_img = cv2.imread(grid_ref_tif_path, cv2.IMREAD_UNCHANGED)
-
-        if "degenerate" in output_img_path:
-            eroded_roi_filter_thresh_img = cic_plot.erode(
-                img=roi_filter_thresh_img)
-            visual_img = cic_plot.compose(eroded_roi_filter_thresh_img,
-                                          grid_ref_img)
-        else:
-            visual_img = cic_plot.compose(roi_filter_thresh_img,
-                                          grid_ref_img)
         cv2.imwrite(visual_path, visual_img)
 
         if verbose:
