@@ -202,15 +202,16 @@ def gray2bgra_tif(tif_path):
 
 def visual_img(grid_ref_tif_path, output_img_path, to_erode_compose_img):
     # read and convert ref img as BGR
-    grid_ref_img = cv2.imread(grid_ref_tif_path, cv2.IMREAD_UNCHANGED)
+    grid_ref_img_bgra = cv2.imread(grid_ref_tif_path, cv2.IMREAD_UNCHANGED)
+    grid_ref_img = grid_ref_img_bgra[:, :, :3]  # just use the bgr part (if a)
 
     if "degenerate" in output_img_path:
         eroded_img = erode(img=to_erode_compose_img)
-        visual_img = compose(eroded_img,
-                             grid_ref_img)
+        visual_img = compose(thresh_img=eroded_img,
+                             ref_img=grid_ref_img)
     else:
-        visual_img = compose(to_erode_compose_img,
-                             grid_ref_img)
+        visual_img = compose(thresh_img=to_erode_compose_img,
+                             ref_img=grid_ref_img)
     return visual_img
 
 
@@ -220,8 +221,10 @@ def compose(thresh_img, ref_img):
         "expected 3 channels in ref_img found {}".format(num_channels(ref_img))
 
     # convert to BGRA thresh img if needed
-    if num_channels(thresh_img) < 4:
+    if num_channels(thresh_img) < 3:
         bgra_thresh_img = cv2.cvtColor(thresh_img, cv2.COLOR_GRAY2BGRA)
+    elif num_channels(thresh_img) < 4:
+        bgra_thresh_img = cv2.cvtColor(thresh_img, cv2.COLOR_BGR2BGRA)
     else:
         bgra_thresh_img = thresh_img
 

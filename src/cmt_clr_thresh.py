@@ -74,7 +74,7 @@ def main():
             ch=ch)
         assert thresh_tif_path is not None, "threshold {} not found".format(
             thresh_tif_path)
-        output_img_path = cic_outspector.output_cmt_clr_tif_path(
+        output_img_path = cic_outspector.cmt_clr_tif_path(
             thresh_dir_path=thresh_dir_path,
             thresh_tif_path=thresh_tif_path)
 

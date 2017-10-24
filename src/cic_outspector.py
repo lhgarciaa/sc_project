@@ -2,6 +2,7 @@ import os
 import cic_overlap
 import cic_plot
 import numpy as np
+import cv2
 
 
 def overlap_dir_path(case_dir, ch):
@@ -111,11 +112,22 @@ def output_roi_filter_tif_path(thresh_dir_path, thresh_tif_path):
     return os.path.join(thresh_dir_path, new_base)
 
 
-def output_cmt_clr_tif_path(thresh_dir_path, thresh_tif_path):
+def cmt_clr_tif_path(thresh_dir_path, thresh_tif_path):
     new_base = os.path.splitext(os.path.basename(thresh_tif_path))[0] + \
                "_cmt_clr" + \
                os.path.splitext(os.path.basename(thresh_tif_path))[1]
     return os.path.join(thresh_dir_path, new_base)
+
+
+def agg_cmt_clr_tif_path(cmt_clr_tif_path, output_dir_path, lvl):
+    end = "_agg_cmt_clr.tif"
+    if "degenerate" in cmt_clr_tif_path:
+        end = "_agg_degenerate_cmt_clr.tif"
+
+    assert os.path.isdir(output_dir_path)
+    pref_str = "{:03}".format(int(lvl))
+    base_name = pref_str + end
+    return os.path.join(output_dir_path, base_name)
 
 
 def atlas_tif_path(lvl):
@@ -172,7 +184,6 @@ def roi_filter_thresh_ovlp(roi_filter_csv_path, thresh_tif_path, overlap_path,
 
     thresh_img = cic_plot.thresh_tif(thresh_tif_path=thresh_tif_path)
     return march_through_ovlp_thresh(
-        cons_cmt_str=None,
         incl_lst=incl_lst,
         excl_lst=excl_lst,
         thresh_img=thresh_img,
@@ -200,18 +211,46 @@ def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path,
     thresh_img = cic_plot.gray2bgra_tif(tif_path=thresh_tif_path)
     tup = march_through_ovlp_thresh(
         cons_cmt_str=cons_cmt_str,
-        incl_lst=None,
-        excl_lst=None,
         thresh_img=thresh_img,
         overlap_path=overlap_path,
         atlas_tif_path=atlas_tif_path,
         gcs=gcs,
         lvl=lvl,
         hemi=hemi,
-        opairs_section=None,
         execution_method=cmt_clr_thresh_cell,
         verbose=verbose)
     return tup[1]  # return just the thresh_img
+
+
+# calls march_through_ovlp_thresh with agg_cmt_clr_thresh_cell execution_method
+#  simply aggregate cmt_clr_tif_path with agg_cmt_clr_tif_path
+def agg_cmt_clr_thresh(cmt_clr_tif_path, agg_cmt_clr_tif_path,
+                       gcs, lvl, hemi, verbose):
+
+    if verbose:
+        print("Aggregating cmt coloring {} with {}".format(
+            cmt_clr_tif_path, agg_cmt_clr_tif_path))
+
+    # use the community colored threshhold image as "thresh_img"
+    assert os.path.isfile(cmt_clr_tif_path), \
+        "No cmt color tif {} found".format(cmt_clr_tif_path)
+    thresh_img = cv2.imread(cmt_clr_tif_path, cv2.IMREAD_UNCHANGED)
+
+    # if agg output file exists, open it, otherwise simply copy thresh_img
+    if os.path.isfile(agg_cmt_clr_tif_path):
+        agg_cmt_clr_tif = cv2.imread(agg_cmt_clr_tif_path,
+                                     cv2.IMREAD_UNCHANGED)
+    else:
+        agg_cmt_clr_tif = thresh_img.copy()
+
+    # ditch the alpha channel for composition
+    agg_cmt_clr_tif_bgr = agg_cmt_clr_tif[:, :, :3]
+
+    # do the freakin aggregation  or uh... composition right tf here
+    comp_cmt_clr_tif = cic_plot.compose(thresh_img=thresh_img,
+                                        ref_img=agg_cmt_clr_tif_bgr)
+
+    return comp_cmt_clr_tif
 
 
 # an execution_method
@@ -254,18 +293,20 @@ def cmt_clr_thresh_cell(**args):
 
 
 # returns tup: (overlap_tup, thresh_img)
-def march_through_ovlp_thresh(cons_cmt_str,
-                              incl_lst, excl_lst, thresh_img,
-                              overlap_path, atlas_tif_path, gcs, lvl, hemi,
-                              opairs_section, execution_method, verbose):
+def march_through_ovlp_thresh(cons_cmt_str=None,
+                              incl_lst=None, excl_lst=None, thresh_img=None,
+                              agg_cmt_clr_tif=None,
+                              overlap_path=None, atlas_tif_path=None,
+                              gcs=None, lvl=None, hemi=None,
+                              opairs_section=None,
+                              execution_method=None, verbose=None):
     assert type(gcs) == int
     assert type(lvl) == int
     assert type(hemi) == str
 
-    # only create cons_cmt_str if needed (because cmt color thresh)
-    overlap_tup = \
-        cic_overlap.read_overlap_csv(input_csv_path=overlap_path)
+    overlap_tup = cic_overlap.read_overlap_csv(input_csv_path=overlap_path)
     (meta_dct, header_lst, overlap_rows) = overlap_tup
+
     dct_gcs = int(meta_dct['Grid Size'])
     dct_lvl = int(meta_dct['ARA Level'])
 
@@ -297,6 +338,7 @@ def march_through_ovlp_thresh(cons_cmt_str,
         print "(gt_xmin, gt_xmax, gt_ymin, gt_ymax) {}".format(gt_edges_tup)
         print "midx {}".format(midx)
 
+    # else some other type of cell based marching
     if hemi == 'r':
         pasted_overlap_rows = []
         offset_x = (midx / gcs + 1) * gcs + 1
