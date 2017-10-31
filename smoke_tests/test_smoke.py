@@ -64,7 +64,8 @@ class RunSmokeTests(unittest.TestCase):
                                         os.getcwd()))
                 for idx, output_path in enumerate(output_path_lst):
                     exp_content_path = exp_content_path_lst[idx]
-                    subprocess.call(['dos2unix', '-q', output_path])
+                    if ".csv" in output_path:
+                        subprocess.call(['dos2unix', '-q', output_path])
                     self.assertTrue(filecmp.cmp(output_path,
                                                 exp_content_path,
                                                 shallow=False),

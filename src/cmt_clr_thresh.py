@@ -125,7 +125,8 @@ def main():
         visual_img = cic_plot.visual_img(
             grid_ref_tif_path=grid_ref_tif_path,
             output_img_path=output_img_path,
-            to_erode_compose_img=cmt_clr_thresh_img)
+            to_erode_compose_img=cmt_clr_thresh_img,
+            verbose=verbose)
 
         cv2.imwrite(visual_path, visual_img)
 

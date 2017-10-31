@@ -200,35 +200,53 @@ def gray2bgra_tif(tif_path):
     return cv2.cvtColor(gray_img, cv2.COLOR_GRAY2BGRA)
 
 
-def visual_img(grid_ref_tif_path, output_img_path, to_erode_compose_img):
+def visual_img(grid_ref_tif_path, output_img_path, to_erode_compose_img,
+               verbose):
     # read and convert ref img as BGR
     grid_ref_img_bgra = cv2.imread(grid_ref_tif_path, cv2.IMREAD_UNCHANGED)
+
+    assert grid_ref_img_bgra is not None
+    if verbose:
+        print("read {} with shape {} and dtype {}".format(
+            grid_ref_tif_path,
+            grid_ref_img_bgra.shape,
+            grid_ref_img_bgra.dtype))
+
     grid_ref_img = grid_ref_img_bgra[:, :, :3]  # just use the bgr part (if a)
 
     if "degenerate" in output_img_path:
         eroded_img = erode(img=to_erode_compose_img)
         visual_img = compose(thresh_img=eroded_img,
-                             ref_img=grid_ref_img)
+                             ref_img=grid_ref_img,
+                             verbose=verbose)
     else:
         visual_img = compose(thresh_img=to_erode_compose_img,
-                             ref_img=grid_ref_img)
+                             ref_img=grid_ref_img,
+                             verbose=verbose)
+    # return visual_img
     return visual_img
 
 
 # expects BGRA thresh_img (or will convert) and BGR ref_img (will not convert)
-def compose(thresh_img, ref_img):
+def compose(thresh_img, ref_img, verbose):
     assert num_channels(ref_img) == 3, \
         "expected 3 channels in ref_img found {}".format(num_channels(ref_img))
 
     # convert to BGRA thresh img if needed
     if num_channels(thresh_img) < 3:
+        if verbose:
+            print "converting thresh_img from GRAY to BGRA"
         bgra_thresh_img = cv2.cvtColor(thresh_img, cv2.COLOR_GRAY2BGRA)
     elif num_channels(thresh_img) < 4:
+        if verbose:
+            print "converting thresh_img from BGR to BGRA"
         bgra_thresh_img = cv2.cvtColor(thresh_img, cv2.COLOR_BGR2BGRA)
     else:
         bgra_thresh_img = thresh_img
 
     # convert all white of threshold image to transparent
+    if verbose:
+        print "making all white transparent in bgra_thresh_img"
     bgra_thresh_img[np.where(
         (bgra_thresh_img == [255, 255, 255, 255]).all(axis=2))] = \
         [255, 255, 255, 0]
@@ -248,6 +266,7 @@ def compose(thresh_img, ref_img):
     msked_thresh_img = \
         (overlay_img * (1 / 255.0)) * (overlay_msk * (1 / 255.0))
 
+    print "overlaying masked_thresh_img over masked_ref_img"
     return np.uint8(cv2.addWeighted(msked_ref_img, 255.0,
                                     msked_thresh_img, 255.0,
                                     0.0))

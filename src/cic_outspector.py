@@ -248,7 +248,8 @@ def agg_cmt_clr_thresh(cmt_clr_tif_path, agg_cmt_clr_tif_path,
 
     # do the freakin aggregation  or uh... composition right tf here
     comp_cmt_clr_tif = cic_plot.compose(thresh_img=thresh_img,
-                                        ref_img=agg_cmt_clr_tif_bgr)
+                                        ref_img=agg_cmt_clr_tif_bgr,
+                                        verbose=verbose)
 
     return comp_cmt_clr_tif
 

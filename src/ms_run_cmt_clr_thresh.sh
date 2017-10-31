@@ -15,7 +15,6 @@ venv_dir=$5;
 logs_dir=qsub_logs
 mkdir -p $logs_dir # prepare logs file if it doesn't already exist
 name_base=`basename $case_dir` # for output file
-root_dir=`dirname $char_cmt_str_csv`
 
 lvl=1
 max_lvl=132
