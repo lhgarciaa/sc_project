@@ -1,8 +1,8 @@
 COMMAND, OUTPUT_PATH, EXP_CONTENT_PATH
 # test testing setup
 echo "hi there" > smoke_tests/hi_there.txt, smoke_tests/hi_there.txt, smoke_tests/exp_hi_there.txt
-# test AGGREGATE CMT CLR for SW120228-02B al 100 gcs 350 channel 5
-src/agg_cmt_clr_thresh.py -v -gcs 350 -lvl 100 -cb test_data/agg_cmt_clr -cct SW120228-02B:5 -od test_data/agg_cmt_clr/agg_cmt_clr, test_data/agg_cmt_clr/agg_cmt_clr/100_agg_degenerate_cmt_clr.tif test_data/agg_cmt_clr/agg_cmt_clr/100_agg_degenerate_cmt_clr_visual.tif, smoke_tests/exp_100_agg_degenerate_cmt_clr.tif smoke_tests/exp_100_agg_degenerate_cmt_clr_visual.tif
+# test AGGREGATE CMT CLR for SW120228-02B al 100 gcs 350 channel 5 and 3 and missing level in SW1999999-09B
+src/agg_cmt_clr_thresh.py -v -gcs 350 -lvl 100 -cb test_data/agg_cmt_clr -cct SW199999-09B:3 SW120228-02B:5 SW120228-02B:3 -od test_data/agg_cmt_clr/agg_cmt_clr, test_data/agg_cmt_clr/agg_cmt_clr/100_agg_degenerate_cmt_clr.tif test_data/agg_cmt_clr/agg_cmt_clr/100_agg_degenerate_cmt_clr_visual.tif, smoke_tests/exp_100_agg_degenerate_cmt_clr.tif smoke_tests/exp_100_agg_degenerate_cmt_clr_visual.tif
 # test aggregate CMT CLR for SW120228-02B al 100 gcs 350 channel 3
 src/agg_cmt_clr_thresh.py -v -gcs 350 -lvl 100 -cb test_data/agg_cmt_clr -cct SW120228-02B:3 -od test_data/agg_cmt_clr/agg_cmt_clr, test_data/agg_cmt_clr/agg_cmt_clr/100_agg_cmt_clr.tif test_data/agg_cmt_clr/agg_cmt_clr/100_agg_cmt_clr_visual.tif, smoke_tests/exp_100_agg_cmt_clr.tif smoke_tests/exp_100_agg_cmt_clr_visual.tif
 # test aggregate CMT CLR for SW120228-02B al 100 gcs 350 channel 2

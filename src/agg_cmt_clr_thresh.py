@@ -3,7 +3,6 @@ import argparse
 import os
 import cic_outspector
 import cic_utils
-import sys
 import cv2
 import cPickle as pickle
 import cic_plot
@@ -41,9 +40,13 @@ def main():
     lvl = args['atlas_level']
     verbose = args['verbose']
 
+    if verbose:
+        print "args {}".format(args)
+
     # get base dir and case and march through subdirs to aggregate
     case_basedir = args['case_basedir']
     case_ch_tups = args['case_ch_tups']
+    append_case_ch_tups = ""  # append new string and then write to args
     for case_ch_tup in case_ch_tups:
         assert ':' in case_ch_tup, "Expected format case:ch instead found {}".\
             format(case_ch_tup)
@@ -62,6 +65,9 @@ def main():
         assert os.path.isdir(overlap_ch_dir_path),\
             "no overlap dir {}".format(overlap_ch_dir_path)
 
+        if verbose:
+            print "AGGREGATING case {} channel {}".format(case, ch)
+
         # get section from opairs.lst
         opairs_section = cic_outspector.opairs_section(case_dir=case_dir,
                                                        lvl=lvl)
@@ -72,8 +78,7 @@ def main():
             if verbose:
                 print("No opairs.lst section found for ARA level {}".format(
                     lvl))
-                print("exiting without error")
-            sys.exit(0)
+                print("skipping without error")
         # else have opairs section now get threshold tif
         else:
             thresh_dir_path = cic_outspector.thresh_dir_path(
@@ -156,6 +161,9 @@ def main():
                 to_erode_compose_img=cmt_clr_thresh_img,
                 verbose=verbose)
             cv2.imwrite(visual_path, visual_img)
+
+            append_case_ch_tups += "{}:{} ".format(case, ch)
+            args['case_ch_tups'] = append_case_ch_tups
 
             output_pickle_path = cic_utils.pickle_path(agg_cmt_clr_tif_path)
             pickle.dump(args, open(output_pickle_path, "wb"))

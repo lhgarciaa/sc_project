@@ -228,7 +228,7 @@ def agg_cmt_clr_thresh(cmt_clr_tif_path, agg_cmt_clr_tif_path,
                        gcs, lvl, hemi, verbose):
 
     if verbose:
-        print("Aggregating cmt coloring {} with {}".format(
+        print("overlaying {} onto {}".format(
             cmt_clr_tif_path, agg_cmt_clr_tif_path))
 
     # use the community colored threshhold image as "thresh_img"
