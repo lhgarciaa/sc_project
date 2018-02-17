@@ -184,12 +184,17 @@ def paste_cell_img(cell_img, y, x, gcs, hemi, edges_tup, grid_thresh_img):
     grid_thresh_img[y:y_stop, x:x_stop] = cell_img
 
 
+# checks for BLACK instead of checking for NOT WHITE. This is not necessarily
+#  correct but apparently matches what overlap code does
 def has_thresh(cell_img):
-    # do bitwise_not since are actually testing for black since thresh
-    #  represented as black... bitwise_not converts black to white, then
-    #  we test for white
+    # TODO: check for black (0) (as opposed to checking for not white (1-255))
+    # what we do here    1. convert 1-255 -> 255
+    #                    2. bitwise not (convert 0 -> 255 and 255 -> 0)
+    #                    3. return true if any not 0
     # any() checks if anything evaluates to True i.e. not zero
-    return (cv2.bitwise_not(cell_img).any())
+    return (cv2.bitwise_not(
+        cv2.threshold(src=cell_img, thresh=1, maxval=255,
+                      type=cv2.THRESH_BINARY)[1]).any())
 
 
 # does not change color channels

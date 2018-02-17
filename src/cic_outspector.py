@@ -47,7 +47,9 @@ def cellcount_or_overlap_path(overlap_dir_path, opairs_section, ch, gcs):
     if os.path.isfile(cellcount):
         return cellcount
     else:
-        assert(os.path.isfile(or_overlap_path))
+        assert(os.path.isfile(or_overlap_path)), \
+            "ERROR: no cell count at {}\n or overlap here {}".format(
+                cellcount, or_overlap_path)
         return or_overlap_path
 
 
