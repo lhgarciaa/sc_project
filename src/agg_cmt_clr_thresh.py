@@ -26,9 +26,10 @@ def main():
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
-    parser.add_argument('-od', '--output_dir',
-                        help='Directory for aggregated output',
-                        required=True)
+    parser.add_argument(
+        '-od', '--output_dir',
+        help='Directory for aggregated output, should already exist',
+        required=True)
 
     args = vars(parser.parse_args())
 

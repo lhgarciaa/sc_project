@@ -16,10 +16,13 @@ class TestCicPlot(unittest.TestCase):
         self.cons_cmt_str_csv_path = 'test_data/test_cic_plot/cons_cmt_str.csv'
         self.pasted_thresh_tif_path = \
             'test_data/test_cic_plot/pasted_thresh.tif'
-        self.exp_cons_cmt_str = \
-            [frozenset(['(53:r:16:10)', '(53:r:16:11)']), frozenset([]),
-             frozenset([])]
+        self.exp_cons_cmt_str = [frozenset(['BLA_am']),
+                                 frozenset(['BLA_al']),
+                                 frozenset(['(53:r:16:10)',
+                                            '(53:r:16:11)',
+                                            'BLA_ac'])]
         self.exp_cmt_idx = 0
+        self.inj_site_order_lst = ['BLA_am', 'BLA_al', 'BLA_ac']
         img = cic_plot.thresh_tif(thresh_tif_path=self.thresh_tif_path)
         self.edges_tup = (0, 700, 0, 350)
         (xmin, xmax, ymin, ymax) = self.edges_tup
@@ -27,7 +30,8 @@ class TestCicPlot(unittest.TestCase):
 
     def test_cons_cmt_str(self):
         cons_cmt_str = cic_plot.cons_cmt_str(self.cons_cmt_str_csv_path,
-                                             self.lvl)
+                                             self.lvl,
+                                             self.inj_site_order_lst)
         self.assertEqual(self.exp_cons_cmt_str, cons_cmt_str)
 
     def test_cell_img(self):
@@ -40,7 +44,8 @@ class TestCicPlot(unittest.TestCase):
 
     def test_cmt_idx(self):
         cons_cmt_str = cic_plot.cons_cmt_str(self.cons_cmt_str_csv_path,
-                                             self.lvl)
+                                             self.lvl,
+                                             [])
         cmt_idx = cic_plot.cmt_idx(cons_cmt_str=cons_cmt_str,
                                    lvl=self.lvl,
                                    hemi=self.hemi,

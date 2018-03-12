@@ -14,11 +14,13 @@ sS'atlas_level'
 p7
 S'100'
 p8
-sS'grid_cell_size'
+sS'injection_site_order'
 p9
-S'350'
+NsS'grid_cell_size'
 p10
-sS'channel'
+S'350'
 p11
+sS'channel'
+p12
 S'3'
 s.

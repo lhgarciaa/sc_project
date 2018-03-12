@@ -1,6 +1,10 @@
 COMMAND, OUTPUT_PATH, EXP_CONTENT_PATH
 # test testing setup
 echo "hi there" > smoke_tests/hi_there.txt, smoke_tests/hi_there.txt, smoke_tests/exp_hi_there.txt
+# test COLORIZE THRESHOLD for JUST NORMAL SW120228-02B 100 gcs 350 ch 2
+python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -iso BLA_am BLA_al BLA_ac -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 2 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/2/SW120228-02B_3_05_ch2-th_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch2-th_cmt_clr.tif
+# test colorize threshold for NORMAL AND FILTERED SW120228-02B 100 gcs 350 ch 3
+python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 3 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/3/SW120228-02B_3_05_ch3-th_roi_filter_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch3-th_roi_filter_cmt_clr.tif
 # test AGGREGATE CMT CLR for SW120228-02B al 100 gcs 350 channel 5 and 3 and missing level in SW1999999-09B
 src/agg_cmt_clr_thresh.py -v -gcs 350 -lvl 100 -cb test_data/agg_cmt_clr -cct SW199999-09B:3 SW120228-02B:5 SW120228-02B:3 -od test_data/agg_cmt_clr/agg_cmt_clr, test_data/agg_cmt_clr/agg_cmt_clr/100_agg_degenerate_cmt_clr.tif test_data/agg_cmt_clr/agg_cmt_clr/100_agg_degenerate_cmt_clr_visual.tif, smoke_tests/exp_100_agg_degenerate_cmt_clr.tif smoke_tests/exp_100_agg_degenerate_cmt_clr_visual.tif
 # test aggregate CMT CLR for SW120228-02B al 100 gcs 350 channel 3
@@ -9,10 +13,6 @@ src/agg_cmt_clr_thresh.py -v -gcs 350 -lvl 100 -cb test_data/agg_cmt_clr -cct SW
 src/agg_cmt_clr_thresh.py -v -gcs 350 -lvl 100 -cb test_data/agg_cmt_clr -cct SW120228-02B:2 -od test_data/agg_cmt_clr/agg_cmt_clr, test_data/agg_cmt_clr/agg_cmt_clr/100_agg_cmt_clr.tif test_data/agg_cmt_clr/agg_cmt_clr/100_agg_cmt_clr_visual.tif, smoke_tests/exp_100_agg_cmt_clr.tif smoke_tests/exp_100_agg_cmt_clr_visual.tif
 # test ROI FILTER for SW120228-02B al 100 gcs 350 channel 2
 src/roi_filter_thresh_ovlp.py -v -ic test_data/roi_filter_thresh_ovlp/SW120228-02B/SW120228-02B_roi_filter_ch2_grid-350.csv -ch 2 -gcs 350 -lvl 100 -cd test_data/roi_filter_thresh_ovlp/SW120228-02B/, test_data/roi_filter_thresh_ovlp/SW120228-02B/threshold/channels/2/SW120228-02B_3_05_ch2-th_roi_filter.tif test_data/roi_filter_thresh_ovlp/SW120228-02B/threshold/channels/2/SW120228-02B_3_05_ch2-th_roi_filter_visual.tif test_data/roi_filter_thresh_ovlp/SW120228-02B/overlap/2/SW120228-02B_3_05_ch2_grid-350_roi_filter.csv, smoke_tests/exp_SW120228-02B_3_05_ch2-th_roi_filter.tif smoke_tests/exp_SW120228-02B_3_05_ch2-th_roi_filter_visual.tif smoke_tests/exp_SW120228-02B_3_05_ch2_grid-350_roi_filter.csv
-# test COLORIZE THRESHOLD for JUST NORMAL SW120228-02B 100 gcs 350 ch 2
-python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 2 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/2/SW120228-02B_3_05_ch2-th_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch2-th_cmt_clr.tif
-# test colorize threshold for NORMAL AND FILTERED SW120228-02B 100 gcs 350 ch 3
-python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 3 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/3/SW120228-02B_3_05_ch3-th_roi_filter_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch3-th_roi_filter_cmt_clr.tif
 # test colorize threshold for JUST FILTERED SW120228-02B 100 gcs 350 ch 5
 python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 5 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/5/SW120228-02B_3_05_ch5-degenerate_roi_filter_cmt_clr.tif test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/5/SW120228-02B_3_05_ch5-degenerate_roi_filter_cmt_clr_visual.tif, smoke_tests/exp_SW120228-02B_3_05_ch5-degenerate_roi_filter_cmt_clr.tif smoke_tests/exp_SW120228-02B_3_05_ch5-degenerate_roi_filter_cmt_clr_visual.tif
 # test aggregating CHANNEL 2 overlap

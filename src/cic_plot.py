@@ -90,7 +90,8 @@ def get_edges(rgb_code):
 #  return sorted list of frozensets corresponding to communities in consensus
 #   only of images with threshold level
 #   note this method assumes cmt structure is made up of grid cells
-def cons_cmt_str(cons_cmt_csv_path, lvl):
+#   will order using inj_site_order_lst unless it is an empty list
+def cons_cmt_str(cons_cmt_csv_path, lvl, inj_site_order_lst):
     assert os.path.isfile(cons_cmt_csv_path), "No csv {}".format(
         cons_cmt_csv_path)
     cons_cmt_str = None
@@ -104,9 +105,34 @@ def cons_cmt_str(cons_cmt_csv_path, lvl):
                 for lst in cons_cmt_str_lst_lst:
                     lvl_lst = []
                     for cell in lst:
+                        # add if correct level, or injection site in frozenset
                         if cell.startswith('({}:'.format(lvl)):
                             lvl_lst.append(cell)
+                        for inj_site in inj_site_order_lst:
+                            if inj_site in cell:
+                                lvl_lst.append(cell)
                     cons_cmt_str.append(frozenset(lvl_lst))
+
+    # now reorder list to match consensus community structure
+    if len(inj_site_order_lst) == 0:
+        print "not reordering consensus community structure"
+    else:
+        print "reordering consensus community structure to match {}".format(
+            inj_site_order_lst)
+        ordered_cons_cmt_str = []
+        for order_idx, inj_site in enumerate(inj_site_order_lst):
+            for orig_idx, cons_cmt in enumerate(cons_cmt_str):
+                if inj_site in cons_cmt:
+                    ordered_cons_cmt_str.append(cons_cmt)
+                    if order_idx != orig_idx:
+                        print "reordered {} from {} to {}".format(
+                            inj_site,
+                            orig_idx,
+                            order_idx)
+
+        assert len(ordered_cons_cmt_str) == len(cons_cmt_str), "Reordering not successful, check injection sites in {}".format(inj_site_order_lst)  # noQA
+        cons_cmt_str = ordered_cons_cmt_str
+
     return cons_cmt_str
 
 

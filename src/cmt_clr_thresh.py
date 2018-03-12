@@ -28,6 +28,11 @@ def main():
     parser.add_argument('-ch', '--channel',
                         help='Case channel to write to output',
                         required=True)
+    parser.add_argument('-iso', '--injection_site_order',
+                        help='Order list for injection sites e.g. {}'.format(
+                            '-iso BLA_am BLA_al BLA_ac'),
+                        required=True,
+                        nargs='+')
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
@@ -50,6 +55,9 @@ def main():
 
     gcs = args['grid_cell_size']
     lvl = args['atlas_level']
+    inj_site_order_lst = args['injection_site_order']
+    assert len(inj_site_order_lst) > 0, "Invalid format for injection_site_order {}".format(injection_site_order)  # NOQA
+
     verbose = args['verbose']
 
     # get section from opairs.lst
@@ -104,6 +112,7 @@ def main():
             gcs=int(gcs),
             lvl=int(lvl),
             hemi='r',
+            inj_site_order_lst=inj_site_order_lst,
             verbose=verbose)
 
         if verbose:

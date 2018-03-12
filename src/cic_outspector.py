@@ -202,12 +202,14 @@ def roi_filter_thresh_ovlp(roi_filter_csv_path, thresh_tif_path, overlap_path,
 # calls march_through_ovlp_thresh with cmt_clr_thresh_cell execution_method
 #  colorize thresh_tif_path image by index of cmt in cons_cmt_csv_path
 def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path,
-                   atlas_tif_path, gcs, lvl, hemi, verbose):
+                   atlas_tif_path, gcs, lvl, hemi, inj_site_order_lst,
+                   verbose):
     if verbose:
         print("CMT coloring {}".format(thresh_tif_path))
 
     cons_cmt_str = cic_plot.cons_cmt_str(
         cons_cmt_csv_path=cons_cmt_csv_path,
+        inj_site_order_lst=inj_site_order_lst,
         lvl=lvl)
 
     thresh_img = cic_plot.gray2bgra_tif(tif_path=thresh_tif_path)
