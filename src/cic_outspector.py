@@ -209,8 +209,7 @@ def cmt_clr_thresh(cons_cmt_csv_path, thresh_tif_path, overlap_path,
 
     cons_cmt_str = cic_plot.cons_cmt_str(
         cons_cmt_csv_path=cons_cmt_csv_path,
-        inj_site_order_lst=inj_site_order_lst,
-        lvl=lvl)
+        inj_site_order_lst=inj_site_order_lst)
 
     thresh_img = cic_plot.gray2bgra_tif(tif_path=thresh_tif_path)
     tup = march_through_ovlp_thresh(
@@ -281,7 +280,7 @@ def cmt_clr_thresh_cell(**args):
             args['lvl'],
             (args['lvl'], args['hemi'],
              args['x']/args['gcs'], args['y']/args['gcs']),
-            'cons_cmt_csv_path')
+            args['cons_cmt_str'])
 
     # color cell image by community
     cmt_clr_cell_img = cic_plot.clr_thresh(cell_img=args['cell_img'],

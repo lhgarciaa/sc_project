@@ -88,10 +88,10 @@ def get_edges(rgb_code):
 
 
 #  return sorted list of frozensets corresponding to communities in consensus
-#   only of images with threshold level
+#   now returns the entire community set regardless of level
 #   note this method assumes cmt structure is made up of grid cells
 #   will order using inj_site_order_lst unless it is an empty list
-def cons_cmt_str(cons_cmt_csv_path, lvl, inj_site_order_lst):
+def cons_cmt_str(cons_cmt_csv_path, inj_site_order_lst):
     assert os.path.isfile(cons_cmt_csv_path), "No csv {}".format(
         cons_cmt_csv_path)
     cons_cmt_str = None
@@ -103,15 +103,7 @@ def cons_cmt_str(cons_cmt_csv_path, lvl, inj_site_order_lst):
                 cons_cmt_str_lst_lst = ast.literal_eval(row[1])
                 cons_cmt_str = []
                 for lst in cons_cmt_str_lst_lst:
-                    lvl_lst = []
-                    for cell in lst:
-                        # add if correct level, or injection site in frozenset
-                        if cell.startswith('({}:'.format(lvl)):
-                            lvl_lst.append(cell)
-                        for inj_site in inj_site_order_lst:
-                            if inj_site in cell:
-                                lvl_lst.append(cell)
-                    cons_cmt_str.append(frozenset(lvl_lst))
+                    cons_cmt_str.append(frozenset(lst))
 
     # now reorder list to match consensus community structure
     if len(inj_site_order_lst) == 0:
@@ -119,17 +111,26 @@ def cons_cmt_str(cons_cmt_csv_path, lvl, inj_site_order_lst):
     else:
         print "reordering consensus community structure to match {}".format(
             inj_site_order_lst)
-        ordered_cons_cmt_str = []
-        for order_idx, inj_site in enumerate(inj_site_order_lst):
-            for orig_idx, cons_cmt in enumerate(cons_cmt_str):
+        idx_arr = range(len(cons_cmt_str))
+        end_idx = len(inj_site_order_lst)
+        for orig_idx, cons_cmt in enumerate(cons_cmt_str):
+            # look for injection site in each community
+            found_inj_site = False
+            for order_idx, inj_site in enumerate(inj_site_order_lst):
                 if inj_site in cons_cmt:
-                    ordered_cons_cmt_str.append(cons_cmt)
+                    found_inj_site = True
+                    idx_arr[order_idx] = orig_idx
                     if order_idx != orig_idx:
                         print "reordered {} from {} to {}".format(
                             inj_site,
                             orig_idx,
                             order_idx)
+            # if no inj sites found in the community, then order differently
+            if not found_inj_site:
+                idx_arr[end_idx] = orig_idx
+                end_idx += 1
 
+        ordered_cons_cmt_str = np.array(cons_cmt_str)[idx_arr].tolist()
         assert len(ordered_cons_cmt_str) == len(cons_cmt_str), "Reordering not successful, check injection sites in {}".format(inj_site_order_lst)  # noQA
         cons_cmt_str = ordered_cons_cmt_str
 
@@ -297,7 +298,8 @@ def compose(thresh_img, ref_img, verbose):
     msked_thresh_img = \
         (overlay_img * (1 / 255.0)) * (overlay_msk * (1 / 255.0))
 
-    print "overlaying masked_thresh_img over masked_ref_img"
+    if verbose:
+        print "overlaying masked_thresh_img over masked_ref_img"
     return np.uint8(cv2.addWeighted(msked_ref_img, 255.0,
                                     msked_thresh_img, 255.0,
                                     0.0))
@@ -318,9 +320,16 @@ def clr_thresh(cell_img, clr_idx):
     assert num_channels(new_img) == 4, "cell image only has {} channels".\
         format(num_channels(new_img))
 
-    clr_arr = [[0,   0,   255, 255],
-               [0,   255,   0, 255],
-               [255,    0,  0, 255]]
+    clr_arr = [[0,     0, 255, 255],    # red
+               [0,   255,   0, 255],    # green
+               [255,   0,   0, 255],    # blue
+               [0,   255, 255, 255],    # yellow
+               [255,   0, 255, 255],    # violet
+               [111, 111, 111, 255],    # gray
+               [222, 222, 222, 255],    # grey
+               [333, 333, 333, 255],    # grayy
+               [444, 444, 444, 255]]    # greyyy
+
     assert clr_idx < len(clr_arr), "Only {} colors supported".format(
         len(clr_arr))
 

@@ -16,12 +16,17 @@ class TestCicPlot(unittest.TestCase):
         self.cons_cmt_str_csv_path = 'test_data/test_cic_plot/cons_cmt_str.csv'
         self.pasted_thresh_tif_path = \
             'test_data/test_cic_plot/pasted_thresh.tif'
-        self.exp_cons_cmt_str = [frozenset(['BLA_am']),
-                                 frozenset(['BLA_al']),
+        self.exp_cons_cmt_str = [frozenset(['BLA_am',
+                                            '(100:r:16:10)',
+                                            '(100:r:16:11)']),
+                                 frozenset(['BLA_al',
+                                            '(100:r:16:3)',
+                                            '(100:r:17:13)']),
                                  frozenset(['(53:r:16:10)',
                                             '(53:r:16:11)',
-                                            'BLA_ac'])]
-        self.exp_cmt_idx = 0
+                                            'BLA_ac']),
+                                 frozenset(['(58:r:238:159)'])]
+        self.exp_cmt_idx = 2
         self.inj_site_order_lst = ['BLA_am', 'BLA_al', 'BLA_ac']
         img = cic_plot.thresh_tif(thresh_tif_path=self.thresh_tif_path)
         self.edges_tup = (0, 700, 0, 350)
@@ -30,8 +35,9 @@ class TestCicPlot(unittest.TestCase):
 
     def test_cons_cmt_str(self):
         cons_cmt_str = cic_plot.cons_cmt_str(self.cons_cmt_str_csv_path,
-                                             self.lvl,
                                              self.inj_site_order_lst)
+
+        self.assertEqual(len(self.exp_cons_cmt_str), len(cons_cmt_str))
         self.assertEqual(self.exp_cons_cmt_str, cons_cmt_str)
 
     def test_cell_img(self):
@@ -43,16 +49,13 @@ class TestCicPlot(unittest.TestCase):
         self.assertEqual((self.gcs, self.gcs), height_width_tup)
 
     def test_cmt_idx(self):
-        cons_cmt_str = cic_plot.cons_cmt_str(self.cons_cmt_str_csv_path,
-                                             self.lvl,
-                                             [])
-        cmt_idx = cic_plot.cmt_idx(cons_cmt_str=cons_cmt_str,
+        cmt_idx = cic_plot.cmt_idx(cons_cmt_str=self.exp_cons_cmt_str,
                                    lvl=self.lvl,
                                    hemi=self.hemi,
                                    col=16,
                                    row=11)
         self.assertEqual(self.exp_cmt_idx, cmt_idx)
-        cmt_idx = cic_plot.cmt_idx(cons_cmt_str=cons_cmt_str,
+        cmt_idx = cic_plot.cmt_idx(cons_cmt_str=self.exp_cons_cmt_str,
                                    lvl=self.lvl,
                                    hemi=self.hemi,
                                    col=16,
