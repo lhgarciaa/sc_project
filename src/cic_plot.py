@@ -325,10 +325,10 @@ def clr_thresh(cell_img, clr_idx):
                [255,   0,   0, 255],    # blue
                [0,   255, 255, 255],    # yellow
                [255,   0, 255, 255],    # violet
-               [111, 111, 111, 255],    # gray
-               [222, 222, 222, 255],    # grey
-               [333, 333, 333, 255],    # grayy
-               [444, 444, 444, 255]]    # greyyy
+               [1,   1,   1, 255],    # black
+               [2,   2,   2, 255],    # black
+               [3,   3,   3, 255],    # black
+               [4,   4,   4, 255]]    # black
 
     assert clr_idx < len(clr_arr), "Only {} colors supported".format(
         len(clr_arr))
