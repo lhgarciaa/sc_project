@@ -111,27 +111,72 @@ def cons_cmt_str(cons_cmt_csv_path, inj_site_order_lst):
     else:
         print "reordering consensus community structure to match {}".format(
             inj_site_order_lst)
-        idx_arr = range(len(cons_cmt_str))
-        end_idx = len(inj_site_order_lst)
+        idx_arr = [-1 for x in range(len(inj_site_order_lst))]
+        # ptr_idx should always point w/in cons_cmt_str
+        end_idx = len(cons_cmt_str)
+
+        if len(cons_cmt_str) < len(inj_site_order_lst):
+            print "WARNING: length of consensus community ({}) less than length of inj site order list ({})".format(  # NOQA
+                len(cons_cmt_str),
+                len(inj_site_order_lst))
+        elif len(cons_cmt_str) > len(inj_site_order_lst):
+            print "WARNING: length of consensus community ({}) greater than length of inj site order list ({})".format(  # NOQA
+                len(cons_cmt_str),
+                len(inj_site_order_lst))
+            idx_arr = [-1 for x in range(len(cons_cmt_str))]
+            end_idx = len(inj_site_order_lst)
+
         for orig_idx, cons_cmt in enumerate(cons_cmt_str):
             # look for injection site in each community
             found_inj_site = False
             for order_idx, inj_site in enumerate(inj_site_order_lst):
+                # else proceed normally
                 if inj_site in cons_cmt:
                     found_inj_site = True
-                    idx_arr[order_idx] = orig_idx
-                    if order_idx != orig_idx:
-                        print "reordered {} from {} to {}".format(
-                            inj_site,
-                            orig_idx,
-                            order_idx)
+                    # now check to see if cmt_str idx has already been assigned
+                    try:
+                        already_idx = idx_arr.index(orig_idx)
+                        already_val = idx_arr[already_idx]
+                        idx_arr[order_idx] = already_val  # duplicate but okay
+                        print "also moved {} cmt from {} to {} with {}".\
+                            format(
+                                inj_site,
+                                orig_idx,
+                                already_idx,
+                                inj_site_order_lst[already_idx])
+
+                    except ValueError:
+                        idx_arr[order_idx] = orig_idx
+                        if order_idx != orig_idx:
+                            print "reordered {} cmt from {} to {}".format(
+                                inj_site,
+                                orig_idx,
+                                order_idx)
+                        else:
+                            print "ordered {} cmt to {}".format(
+                                inj_site,
+                                order_idx)
             # if no inj sites found in the community, then order differently
             if not found_inj_site:
+                print "Did not find injection site in cmt {}".format(orig_idx)
+                print "reordering cmt from {} to {}".format(
+                    orig_idx,
+                    end_idx)
                 idx_arr[end_idx] = orig_idx
                 end_idx += 1
+        not_found_idx_arr = [i for i, x in enumerate(idx_arr) if x == -1]
+        for not_found_idx in not_found_idx_arr:
+            print "warning, {} not found in any cmt".format(
+                inj_site_order_lst[not_found_idx])
+            idx_arr[not_found_idx] = 0
 
+        print "new index array for cmt str {}".format(idx_arr)
         ordered_cons_cmt_str = np.array(cons_cmt_str)[idx_arr].tolist()
-        assert len(ordered_cons_cmt_str) == len(cons_cmt_str), "Reordering not successful, check injection sites in {}".format(inj_site_order_lst)  # noQA
+        if len(ordered_cons_cmt_str) != len(inj_site_order_lst):
+            print "INFO: length of ordered consensus community ({}) different than length of inj site order list ({})".format(  # NOQA
+                len(ordered_cons_cmt_str),
+                len(inj_site_order_lst))
+
         cons_cmt_str = ordered_cons_cmt_str
 
     return cons_cmt_str
@@ -320,18 +365,19 @@ def clr_thresh(cell_img, clr_idx):
     assert num_channels(new_img) == 4, "cell image only has {} channels".\
         format(num_channels(new_img))
 
-    clr_arr = [[0,     0, 255, 255],    # red
-               [0,   255,   0, 255],    # green
-               [255,   0,   0, 255],    # blue
-               [0,   255, 255, 255],    # yellow
-               [255,   0, 255, 255],    # violet
-               [1,   1,   1, 255],    # black
-               [2,   2,   2, 255],    # black
-               [3,   3,   3, 255],    # black
-               [4,   4,   4, 255]]    # black
+    clr_arr = [[28,   26, 228, 255],   # red
+               [0,   127, 255, 255],   # orange
+               [51,  255, 255, 255],   # yellow
+               [74,  175,  77, 255],   # green
+               [184, 126,  55, 255],   # blue
+               [40,   86, 166, 255],   # brown
+               [163,  78, 152, 255],   # violet
+               [0,     0,   0, 255]]   # black
 
-    assert clr_idx < len(clr_arr), "Only {} colors supported".format(
-        len(clr_arr))
+    if clr_idx >= len(clr_arr):
+        print "Warning only {} colors supported".format(len(clr_arr))
+        print "Setting to black"
+        clr_idx = len(clr_arr) - 1
 
     new_img[np.where((new_img == [0, 0, 0, 255]).all(axis=2))] = \
         clr_arr[clr_idx]
