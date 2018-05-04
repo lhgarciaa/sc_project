@@ -36,6 +36,9 @@ def main():
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
+    parser.add_argument('-aa', '--annotated_atlas',
+                        help='Overlay over annotated atlas (i.e. with labels)',
+                        action='store_true')
 
     args = vars(parser.parse_args())
 
@@ -59,6 +62,7 @@ def main():
     assert len(inj_site_order_lst) > 0, "Invalid format for injection_site_order {}".format(injection_site_order)  # NOQA
 
     verbose = args['verbose']
+    annotated_atlas = args['annotated_atlas']
 
     # get section from opairs.lst
     opairs_section = cic_outspector.opairs_section(case_dir=case_dir,
@@ -99,7 +103,9 @@ def main():
             gcs=gcs)
         assert overlap_path is not None, "overlap {} not found".format(
             overlap_path)
-        atlas_tif_path = cic_outspector.atlas_tif_path(lvl=lvl)
+        atlas_tif_path = cic_outspector.atlas_tif_path(
+            lvl=lvl,
+            annotated_atlas=False)
         assert atlas_tif_path is not None, "atlas tif {} not found".format(
             atlas_tif_path)
         # use communities defined in input_csv_path to color threshold in
@@ -127,6 +133,12 @@ def main():
                 thresh_tif_path=output_img_path)
         grid_ref_tif_path = cic_outspector.grid_ref_tif_path(
             overlap_path=overlap_path, ch=ch)
+        # if annotated atlas argument specified, overlay over that
+        if annotated_atlas:
+            grid_ref_tif_path = cic_outspector.atlas_tif_path(
+                lvl=lvl,
+                annotated_atlas=True)
+
         assert os.path.isfile(grid_ref_tif_path), \
             "No grid reference tif found {}".format(grid_ref_tif_path)
         if verbose:

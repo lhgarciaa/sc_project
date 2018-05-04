@@ -132,10 +132,22 @@ def agg_cmt_clr_tif_path(cmt_clr_tif_path, output_dir_path, lvl):
     return os.path.join(output_dir_path, base_name)
 
 
-def atlas_tif_path(lvl):
-    pref_str = "{:03}".format(int(lvl))
-    base_name = pref_str + '_2013_rgb-01_append.tif'
-    return os.path.join('/ifs/loni/faculty/dong/mcp/atlas_roigb', base_name)
+def atlas_tif_path(lvl, annotated_atlas=False):
+    ret_val = ""
+    if not annotated_atlas:
+        pref_str = "{:03}".format(int(lvl))
+        base_name = pref_str + '_2013_rgb-01_append.tif'
+        ret_val = os.path.join(
+            '/ifs/loni/faculty/dong/mcp/atlas_roigb',
+            base_name)
+    else:
+        pref_str = "ARA-Coronal-{:03}".format(int(lvl))
+        base_name = pref_str + '_full_labels.tif'
+        ret_val = os.path.join(
+            '/ifs/loni/faculty/dong/mcp/atlas_roigb/annotated_atlas',
+            base_name)
+    print "atlas_tif_path returning {}".format(ret_val)
+    return ret_val
 
 
 # an execution_method

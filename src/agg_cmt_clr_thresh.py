@@ -26,6 +26,9 @@ def main():
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
+    parser.add_argument('-aa', '--annotated_atlas',
+                        help='Overlay over annotated atlas (i.e. with labels)',
+                        action='store_true')
     parser.add_argument(
         '-od', '--output_dir',
         help='Directory for aggregated output, should already exist',
@@ -40,6 +43,7 @@ def main():
     gcs = args['grid_cell_size']
     lvl = args['atlas_level']
     verbose = args['verbose']
+    annotated_atlas = args['annotated_atlas']
 
     if verbose:
         print "args {}".format(args)
@@ -121,9 +125,6 @@ def main():
                 gcs=gcs)
             assert overlap_path is not None, "overlap {} not found".format(
                 overlap_path)
-            atlas_tif_path = cic_outspector.atlas_tif_path(lvl=lvl)
-            assert atlas_tif_path is not None, "atlas tif {} not found".format(
-                atlas_tif_path)
 
             cmt_clr_thresh_img = cic_outspector.agg_cmt_clr_thresh(
                 cmt_clr_tif_path=cmt_clr_tif_path,
@@ -147,6 +148,11 @@ def main():
                     thresh_tif_path=agg_cmt_clr_tif_path)
             grid_ref_tif_path = cic_outspector.grid_ref_tif_path(
                 overlap_path=overlap_path, ch=ch)
+            # if annotated atlas argument specified, overlay over that
+            if annotated_atlas:
+                grid_ref_tif_path = cic_outspector.atlas_tif_path(
+                    lvl=lvl,
+                    annotated_atlas=True)
             assert os.path.isfile(grid_ref_tif_path), \
                 "No grid reference tif found {}".format(grid_ref_tif_path)
             if verbose:
