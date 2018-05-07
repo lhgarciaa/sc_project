@@ -1,7 +1,0 @@
-Reading Louvain output CSV
-done in 2.167334795s
-Converting format of read louvain run arr dict
-done in 0.56490111351s
-calculating cons_cmt_str...
-done in 99033.8906219s
-consensus com str:,"[['(58:r:238:159)'], ['(53:r:16:10)', '(53:r:16:11)', 'BLA_ac'], ['BLA_am', '(100:r:16:10)', '(100:r:16:11)'], ['BLA_al', '(100:r:16:3)', '(100:r:17:13)']]"

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import argparse
 import os
-import cic_outspector
-import cic_utils
+from cic_dis import cic_outspector
+from cic_dis import cic_utils
 import sys
 import cv2
 import cPickle as pickle
-import cic_plot
+from cic_dis import cic_plot
 
 
 def main():
