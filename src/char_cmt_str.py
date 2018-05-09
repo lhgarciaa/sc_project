@@ -5,8 +5,8 @@ import argparse
 import csv
 import os
 import numpy as np
-import cic_utils
-import cic_ms
+from cic_dis import cic_utils
+from cic_dis import cic_ms
 import sys
 
 csv.field_size_limit(sys.maxsize)  # let's rock

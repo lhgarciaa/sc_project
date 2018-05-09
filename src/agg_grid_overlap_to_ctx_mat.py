@@ -2,10 +2,10 @@
 from __future__ import print_function
 import argparse
 import os
-import cic_overlap
+from cic_dis import cic_overlap
 import cPickle as pickle
 import csv
-import cic_utils
+from cic_dis import cic_utils
 import sys
 from collections import defaultdict
 

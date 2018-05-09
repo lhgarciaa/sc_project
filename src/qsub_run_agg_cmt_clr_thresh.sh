@@ -16,4 +16,4 @@ venv_dir=$6
 print_lvl=`printf "%0.3d" $lvl`
 
 . $venv_dir/bin/activate
-python src/agg_cmt_clr_thresh.py -v -cb $case_basedir -cct $case_ch_tups -gcs $grid_cell_size -lvl $lvl -od $output_dir
+python src/agg_cmt_clr_thresh.py -v -cb $case_basedir -cct $case_ch_tups -gcs $grid_cell_size -lvl $lvl -od $output_dir -aa

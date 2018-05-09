@@ -1,0 +1,14 @@
+Metalines: 10
+Project Name: SW010101-01A
+Case Name: SW010101-01A
+Slide Number: 1_09
+Channel Number: 2
+ARA Level: 024
+Tracer: PHAL
+Injection Site: None
+Overlap Format: Grid
+Grid Size: 35
+(HEMISPHERE:COLUMN:ROW), GRID ONLY, OVERLAP, COLOR(S), REGION(S)
+(l:0:7), 30585, 40, 31:156:90|176:255:184|255:255:255, MOs_1|BORDER1|BORDER6
+(l:0:8), 30598, 27, 31:156:90|255:255:255, MOs_1|BORDER6
+(l:0:9), 30567, 58, 31:156:90|255:255:255, MOs_1|BORDER6

@@ -5,7 +5,7 @@ import argparse
 import csv
 import os
 import cPickle as pickle
-import cic_utils
+from cic_dis import cic_utils
 import bct
 import time
 import psutil

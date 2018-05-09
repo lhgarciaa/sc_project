@@ -1,10 +1,10 @@
 #!/usr/bin/python
 from __future__ import print_function
 import argparse
-import cic_overlap
+from cic_dis import cic_overlap
 import glob
 import csv
-import cic_utils
+from cic_dis import cic_utils
 import cPickle as pickle
 
 
