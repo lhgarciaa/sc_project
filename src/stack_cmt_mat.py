@@ -1,0 +1,247 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import argparse
+from cic_dis import cic_utils
+from cic_dis import cic_plot
+from cic_dis import cic_overlap
+import time
+import plotly.plotly as py
+import plotly.graph_objs as go
+from collections import defaultdict
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Render stacked community"
+                                     " connectivity matrix")
+    parser.add_argument('-cmc', '--ctx_mat_csv',
+                        help='Input, labeled row source, column destination '
+                        'annotation CSV',
+                        required=True)
+    parser.add_argument('-ccsc', '--char_com_str_csv',
+                        help='Path to CSV containing consensus community '
+                        'structure ',
+                        required=True)
+    parser.add_argument('-aoc', '--agg_overlap_csv',
+                        help='Input aggregated overlap csv',
+                        required=True)
+    parser.add_argument('-lvls', '--levels',
+                        help='List of levels to visualize',
+                        required=True,
+                        nargs='+')
+    parser.add_argument('-iso', '--injection_site_order',
+                        help='Order list for injection sites e.g. {}'.format(
+                            '-iso BLA_am BLA_al BLA_ac'),
+                        nargs='+',
+                        default=[])
+    parser.add_argument('-v', '--verbose',
+                        help='Print relevant but optional output',
+                        action='store_true')
+
+    args = vars(parser.parse_args())
+    ctx_mat_csv = args['ctx_mat_csv']
+    char_com_str_csv = args['char_com_str_csv']
+    agg_overlap_csv = args['agg_overlap_csv']
+    levels = args['levels']
+    verbose = args['verbose']
+    injection_site_order = args['injection_site_order']
+
+    # what we want to do here:
+    #  1) Open all the freakin CSVs
+    #  2) Create a DICT from community to roi list of rois with overlap amount
+    #     { lvl: { cmt_idx : { roi : ovlp } } }
+    #  3) Plot DICT as a bar chart or matrix or something
+
+    # 1) opening all the freakin CSVs
+    # OPEN CONNECTIVITY MATRIX
+    if verbose:
+        print("Opening ctx matrix from {}...".format(ctx_mat_csv))
+        start = time.time()
+    (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
+        cic_utils.read_ctx_mat(ctx_mat_csv)
+    # check for capitlization/duplicates
+    cic_utils.dup_check_container(dup_check_roi_container=row_roi_name_npa,
+                                  input_csv_path=ctx_mat_csv)
+
+    cic_utils.dup_check_container(dup_check_roi_container=col_roi_name_npa,
+                                  input_csv_path=ctx_mat_csv)
+    if verbose:
+        print("opened ctx matrix in {:.04}s".format(time.time() - start))
+        print("(num rows, num cols) {}".format(ctx_mat_npa.shape))
+        print("top left val {}".format(ctx_mat_npa[0][0]))
+
+    # OPEN CHAR COMMUNITY STRUCTURE
+    if verbose:
+        print("Opening char com str csv {}...".format(char_com_str_csv))
+        start = time.time()
+    cons_cmt_str = cic_plot.cons_cmt_str(
+        cons_cmt_csv_path=char_com_str_csv,
+        inj_site_order_lst=injection_site_order)
+    if verbose:
+        print("opened char com str csv in {:.04}s".format(time.time() - start))
+        print("num communities {}".format(len(cons_cmt_str)))
+
+    # OPEN AGG OVERLAP CSV
+    if verbose:
+        print("Opening aggregated overlap csv {}...".format(agg_overlap_csv))
+        start = time.time()
+    (agg_overlap_csv_header, agg_overlap_rows) = \
+        cic_overlap.read_agg_overlap_csv(input_csv_path=agg_overlap_csv)
+    if verbose:
+        print("opened agg overlap csv in {:.04}s".format(time.time() - start))
+        print("num rows {}".format(len(agg_overlap_rows)))
+
+    # 2) Creating a DICT {cmt : frozenset([roi])}
+    max_cmt_idx = -1
+    if verbose:
+        print("Creating community -> roi dictionary for levels {}...".
+              format(levels))
+        start = time.time()
+    lvl_cmt_dct = {}  # { lvl : cmt_roi_dct }
+    # walk through each non-zero entry of ctx mat csv, get roi and bin by cmt
+    for idx, grid_tup_str in enumerate(col_roi_name_npa):
+        if cic_plot.in_lvl_lst(grid_tup_str=grid_tup_str,
+                               lvl_lst=levels):
+            lvl = cic_plot.grid_tup_str_to_lvl_hemi_col_row(grid_tup_str)[0]
+            if lvl not in lvl_cmt_dct:
+                print("populating level {}...".format(lvl))
+            # { lvl : { cmt_idx { roi : ovlp } } }
+            cmt_roi_dct = lvl_cmt_dct.get(lvl, {})
+            cmt_idx = cic_plot.cmt_idx_from_grid_tup_str(
+                cons_cmt_str=cons_cmt_str,
+                grid_tup_str=grid_tup_str)
+            assert cmt_idx is not None
+            max_cmt_idx = max(max_cmt_idx, cmt_idx)
+            roi_str = cic_plot.col_val(
+                col_hdr_str='REGION(S)',
+                agg_overlap_csv_header=agg_overlap_csv_header,
+                agg_overlap_csv_rows=agg_overlap_rows,
+                grid_tup_str=grid_tup_str)
+            assert roi_str is not None
+            # update overlap value in roi overlap dictionary for this level
+            roi_ovlp_dct = cmt_roi_dct.get(cmt_idx, {})
+            inj_site = cic_plot.col_val(
+                col_hdr_str='Injection Site',
+                agg_overlap_csv_header=agg_overlap_csv_header,
+                agg_overlap_csv_rows=agg_overlap_rows,
+                grid_tup_str=grid_tup_str)
+            assert inj_site is not None
+            row_idx = row_roi_name_npa.tolist().index(inj_site)
+
+            roi_ovlp_dct[roi_str] = \
+                roi_ovlp_dct.get(roi_str, 0) + ctx_mat_npa[row_idx][idx]
+
+            # point to all the potentially new dict vals
+            cmt_roi_dct[cmt_idx] = roi_ovlp_dct
+            lvl_cmt_dct[lvl] = cmt_roi_dct
+
+    if verbose:
+        print("Finished creating dict in in {:.04}s".format(
+            time.time() - start))
+        for lvl in sorted(lvl_cmt_dct):
+            print("-- Level {} --".format(lvl))
+            cmt_roi_dct = lvl_cmt_dct[lvl]
+            print("Num communities {}".format(len(cmt_roi_dct)))
+            for cmt_idx in sorted(cmt_roi_dct.keys()):
+                roi_ovlp_dct = cmt_roi_dct[cmt_idx]
+                print("Community {} roi count {} total ovlp {}".format(
+                    injection_site_order[cmt_idx],
+                    len(roi_ovlp_dct),
+                    sum([float(roi_ovlp_dct[roi]) for
+                         roi in roi_ovlp_dct])))
+
+    # 3) Plot DICT as a bar chart or matrix or something
+    if verbose:
+        print("Plotting a bar chart or matrix or something for {} levels and {} communities...".format(len(lvl_cmt_dct), max_cmt_idx + 1))  # noqa
+        start = time.time()
+
+    if verbose:
+        print("creating top roi list...")
+    # create { cmt : [ [roi], ... ] } list of most projected roi for each cmt
+    cmt_top_roi_lst = defaultdict(list)
+    for lvl in sorted(lvl_cmt_dct):  # this will sort top ROIs correctly
+        cmt_roi_dct = lvl_cmt_dct[lvl]
+        # not every level has every community
+        for cmt_idx in xrange(max_cmt_idx + 1):
+            if cmt_idx in cmt_roi_dct:
+                # lst of tups will be sorted by overlap value
+                lst = sorted(cmt_roi_dct[cmt_idx].iteritems(),
+                             key=lambda (k, v): (v, k), reverse=True)
+                roi_str = "{} ".format(lst[0][0])
+                for tup in lst[1:3]:
+                    roi_str += ", {}".format(tup[0])
+                    # create list of strings
+                    cmt_top_roi_lst[cmt_idx].append(roi_str)
+            else:
+                cmt_top_roi_lst[cmt_idx].append('')
+
+    if verbose:
+        print("making traces for each community...")
+    # create traces, or levels that will be plotted as bars
+    # first create the values
+    cmt_trace_y_dct = defaultdict(list)  # { cmt_idx : [ lvl trace val, ...] }
+    # populate total overlap per level for normalization
+    lvl_trace_total_dct = defaultdict(float)
+    for lvl in sorted(lvl_cmt_dct):  # this will sort trace values correctly
+        # append number of rois in each community for each cmt
+        cmt_roi_dct = lvl_cmt_dct[lvl]
+        # not every level has equal num communities, check for that
+        for cmt_idx in xrange(max_cmt_idx + 1):
+            if cmt_idx in cmt_roi_dct:
+                roi_ovlp_dct = cmt_roi_dct[cmt_idx]
+                # append num rois to cmt_trace_y_dct
+                cmt_trace_y_dct[cmt_idx].append(
+                    sum([float(roi_ovlp_dct[roi]) for roi in roi_ovlp_dct]))
+                lvl_trace_total_dct[lvl] = \
+                    lvl_trace_total_dct[lvl] + \
+                    sum([float(roi_ovlp_dct[roi]) for roi in roi_ovlp_dct])
+            else:
+                cmt_trace_y_dct[cmt_idx].append(0)  # append 0 amount of trace
+
+    if verbose:
+        print("normalizing traces to 100% ...")
+    # normalize traces to 100 %
+    # get community from the first level
+    # need to sort this too since cmt_trace_y_dct points to a list
+    for lvl_idx, lvl in enumerate(sorted(lvl_cmt_dct)):
+        cmt_roi_dct = lvl_cmt_dct[lvl]
+        for cmt_idx in sorted(cmt_roi_dct):
+            # normalize to 100% using level values
+            cmt_trace_y_dct[cmt_idx][lvl_idx] = \
+                (float(cmt_trace_y_dct[cmt_idx][lvl_idx]) /
+                 lvl_trace_total_dct[lvl]) * 100.0
+
+    if verbose:
+        print("populating graph object and writing file...")
+    # now populate graph object
+    # not all lvels have all communities, so use global max to cover all
+    traces = []
+    for cmt_idx in xrange(max_cmt_idx + 1):
+        traces.append(
+            go.Bar(
+                # don't forget to sort here bro
+                x=["lvl {}".format(x) for x in sorted(lvl_cmt_dct)],
+                y=cmt_trace_y_dct[cmt_idx],
+                text=cmt_top_roi_lst[cmt_idx],
+                textposition='auto',
+                name="{} community".format(
+                    injection_site_order[cmt_idx]))
+        )
+
+    data = traces
+    layout = go.Layout(
+        barmode='stack',
+        width=1500,
+        height=1500
+    )
+
+    fig = go.Figure(data=data, layout=layout)
+    out_img_path = 'test.png'
+    py.image.save_as(fig, 'test.png')
+    if verbose:
+        print("Finished plotting {} in {:.04}s".format(
+            out_img_path,
+            time.time() - start))
+
+
+if __name__ == '__main__':
+    main()
