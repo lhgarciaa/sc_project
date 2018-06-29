@@ -166,11 +166,12 @@ def main():
                 # lst of tups will be sorted by overlap value
                 lst = sorted(cmt_roi_dct[cmt_idx].iteritems(),
                              key=lambda (k, v): (v, k), reverse=True)
-                roi_str = "{} ".format(lst[0][0])
+                roi_str = "len lst {} ".format(len(lst))
+                roi_str = ":{}: ".format(lst[0][0])
                 for tup in lst[1:3]:
-                    roi_str += ", {}".format(tup[0])
+                    roi_str += " :{}:".format(tup[0])
                     # create list of strings
-                    cmt_top_roi_lst[cmt_idx].append(roi_str)
+                cmt_top_roi_lst[cmt_idx].append(roi_str)
             else:
                 cmt_top_roi_lst[cmt_idx].append('')
 
