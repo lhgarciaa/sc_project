@@ -33,6 +33,10 @@ def main():
                             '-iso BLA_am BLA_al BLA_ac'),
                         nargs='+',
                         default=[])
+    parser.add_argument('-srs', '--split_rois',
+                        help='List of ROIs to split into quadrants',
+                        nargs='+',
+                        default=[])
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
@@ -44,6 +48,7 @@ def main():
     levels = args['levels']
     verbose = args['verbose']
     injection_site_order = args['injection_site_order']
+    split_rois = args['split_rois']
 
     # what we want to do here:
     #  1) Open all the freakin CSVs
@@ -96,14 +101,61 @@ def main():
         print("Creating community -> roi dictionary for levels {}...".
               format(levels))
         start = time.time()
-    lvl_cmt_dct = {}  # { lvl : cmt_roi_dct }
+    # first populate split roi dct
+    lvl_split_roi_dct = {}  # { lvl: { roi: { min_col: ..., max_col,... } } }
+    for idx, grid_tup_str in enumerate(col_roi_name_npa):
+        if cic_plot.in_lvl_lst(grid_tup_str=grid_tup_str,
+                               lvl_lst=levels):
+            (lvl, hemi, col_str, row_str) = \
+                cic_plot.grid_tup_str_to_lvl_hemi_col_row(grid_tup_str)
+            col = int(col_str)
+            row = int(row_str)
+            # populate split_roi_dct either default, of from lvl
+            # get roi and check if it is in the split_rois list
+            roi_str = cic_plot.col_val(
+                col_hdr_str='REGION(S)',
+                agg_overlap_csv_header=agg_overlap_csv_header,
+                agg_overlap_csv_rows=agg_overlap_rows,
+                grid_tup_str=grid_tup_str)
+
+            # now we need to populate split dict
+
+            if lvl not in lvl_split_roi_dct:
+                # { roi: { min_col: ..., max_col,... } }
+                split_roi_dct = {}  # create empty dct on every lvl by default
+                if verbose:
+                    print("populating split roi dct vals, level {}...".format(
+                        lvl))
+            else:
+                split_roi_dct = lvl_split_roi_dct[lvl]
+
+            if roi_str in split_rois:
+                if roi_str not in split_roi_dct:
+                    roi_dct = {'min_col': col,
+                               'max_col': col,
+                               'min_row': row,
+                               'max_row': row}
+                    if verbose:
+                        print("populating dct for {}...".format(roi_str))
+                else:
+                    roi_dct = split_roi_dct[roi_str]
+
+                # update split_roi_dct
+                roi_dct['min_col'] = min(roi_dct['min_col'], col)
+                roi_dct['max_col'] = max(roi_dct['max_col'], col)
+                roi_dct['min_row'] = min(roi_dct['min_row'], row)
+                roi_dct['max_row'] = max(roi_dct['max_row'], row)
+                split_roi_dct[roi_str] = roi_dct
+            lvl_split_roi_dct[lvl] = split_roi_dct
+
     # walk through each non-zero entry of ctx mat csv, get roi and bin by cmt
+    lvl_cmt_dct = {}  # { lvl : cmt_roi_dct }
     for idx, grid_tup_str in enumerate(col_roi_name_npa):
         if cic_plot.in_lvl_lst(grid_tup_str=grid_tup_str,
                                lvl_lst=levels):
             lvl = cic_plot.grid_tup_str_to_lvl_hemi_col_row(grid_tup_str)[0]
             if lvl not in lvl_cmt_dct:
-                print("populating level {}...".format(lvl))
+                print("populating roi overlap values, level {}...".format(lvl))
             # { lvl : { cmt_idx { roi : ovlp } } }
             cmt_roi_dct = lvl_cmt_dct.get(lvl, {})
             cmt_idx = cic_plot.cmt_idx_from_grid_tup_str(
@@ -117,6 +169,11 @@ def main():
                 agg_overlap_csv_rows=agg_overlap_rows,
                 grid_tup_str=grid_tup_str)
             assert roi_str is not None
+            # split rois if they are in lvl_split_roi_dct
+            roi_str = cic_plot.split_roi(
+                roi=roi_str,
+                grid_tup_str=grid_tup_str,
+                split_roi_dct=lvl_split_roi_dct[lvl])
             # update overlap value in roi overlap dictionary for this level
             roi_ovlp_dct = cmt_roi_dct.get(cmt_idx, {})
             inj_site = cic_plot.col_val(
@@ -167,9 +224,9 @@ def main():
                 lst = sorted(cmt_roi_dct[cmt_idx].iteritems(),
                              key=lambda (k, v): (v, k), reverse=True)
                 roi_str = "len lst {} ".format(len(lst))
-                roi_str = ":{}: ".format(lst[0][0])
+                roi_str = "({}) ".format(lst[0][0]).replace("|", " ")
                 for tup in lst[1:3]:
-                    roi_str += " :{}:".format(tup[0])
+                    roi_str += " ({})".format(tup[0]).replace("|", " ")
                     # create list of strings
                 cmt_top_roi_lst[cmt_idx].append(roi_str)
             else:
