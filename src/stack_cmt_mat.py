@@ -8,6 +8,7 @@ import time
 import plotly.plotly as py
 import plotly.graph_objs as go
 from collections import defaultdict
+import os
 
 
 def main():
@@ -136,7 +137,7 @@ def main():
                                'min_row': row,
                                'max_row': row}
                     if verbose:
-                        print("populating dct for {}...".format(roi_str))
+                        print("populating {} split vals".format(roi_str))
                 else:
                     roi_dct = split_roi_dct[roi_str]
 
@@ -293,8 +294,10 @@ def main():
     )
 
     fig = go.Figure(data=data, layout=layout)
-    out_img_path = 'test.png'
-    py.image.save_as(fig, 'test.png')
+    base_agg_overlap_csv = 'stacked-' + os.path.basename(agg_overlap_csv)
+    out_img_path = base_agg_overlap_csv.replace(
+        '.csv', '-{}.png'.format(levels))
+    py.image.save_as(fig, out_img_path)
     if verbose:
         print("Finished plotting {} in {:.04}s".format(
             out_img_path,
