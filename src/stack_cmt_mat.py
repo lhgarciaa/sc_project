@@ -35,21 +35,32 @@ def main():
                         nargs='+',
                         default=[])
     parser.add_argument('-srs', '--split_rois',
-                        help='List of ROIs to split into quadrants',
+                        help="List of ROIs to split into quadrants, can specify mode with e.g. 'ACB:mdlvl', if no mode specified then 'quad' is default",  # noqa
                         nargs='+',
                         default=[])
+    parser.add_argument('-fcs', '--focus_roi',
+                        help='ROI to plot exclusively')
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
 
-    args = vars(parser.parse_args())
-    ctx_mat_csv = args['ctx_mat_csv']
-    char_com_str_csv = args['char_com_str_csv']
-    agg_overlap_csv = args['agg_overlap_csv']
-    levels = args['levels']
-    verbose = args['verbose']
-    injection_site_order = args['injection_site_order']
-    split_rois = args['split_rois']
+    args = parser.parse_args()
+    ctx_mat_csv = args.ctx_mat_csv
+    char_com_str_csv = args.char_com_str_csv
+    agg_overlap_csv = args.agg_overlap_csv
+    levels = args.levels
+    verbose = args.verbose
+    injection_site_order = args.injection_site_order
+    split_rois = args.split_rois
+    # create dct for roi mode lookup later
+    roi_mode_dct = {}
+    for roi_mode in split_rois:
+        roi_mode_lst = roi_mode.split(':')
+        if len(roi_mode_lst) > 1:
+            roi_mode_dct[roi_mode_lst[0]] = roi_mode_lst[1]
+        else:
+            roi_mode_dct[roi_mode_lst[0]] = 'quad'  # quad is default
+    focus_roi = args.focus_roi
 
     # what we want to do here:
     #  1) Open all the freakin CSVs
@@ -130,14 +141,18 @@ def main():
             else:
                 split_roi_dct = lvl_split_roi_dct[lvl]
 
-            if roi_str in split_rois:
+            # for roi_str in test, extract just the roi portion from roi:mode
+            if ((focus_roi is None or focus_roi == roi_str) and
+                    roi_str in [x.split(':')[0] for x in split_rois]):
                 if roi_str not in split_roi_dct:
                     roi_dct = {'min_col': col,
                                'max_col': col,
                                'min_row': row,
-                               'max_row': row}
+                               'max_row': row,
+                               'mode': roi_mode_dct[roi_str]}
                     if verbose:
-                        print("populating {} split vals".format(roi_str))
+                        print("populating {} split {} vals".format(
+                            roi_str, roi_mode_dct[roi_str]))
                 else:
                     roi_dct = split_roi_dct[roi_str]
 
@@ -170,26 +185,27 @@ def main():
                 agg_overlap_csv_rows=agg_overlap_rows,
                 grid_tup_str=grid_tup_str)
             assert roi_str is not None
-            # split rois if they are in lvl_split_roi_dct
-            roi_str = cic_plot.split_roi(
-                roi=roi_str,
-                grid_tup_str=grid_tup_str,
-                split_roi_dct=lvl_split_roi_dct[lvl])
-            # update overlap value in roi overlap dictionary for this level
-            roi_ovlp_dct = cmt_roi_dct.get(cmt_idx, {})
-            inj_site = cic_plot.col_val(
-                col_hdr_str='Injection Site',
-                agg_overlap_csv_header=agg_overlap_csv_header,
-                agg_overlap_csv_rows=agg_overlap_rows,
-                grid_tup_str=grid_tup_str)
-            assert inj_site is not None
-            row_idx = row_roi_name_npa.tolist().index(inj_site)
+            if focus_roi is None or focus_roi == roi_str:
+                # split rois if they are in lvl_split_roi_dct
+                roi_str = cic_plot.split_roi(
+                    roi=roi_str,
+                    grid_tup_str=grid_tup_str,
+                    split_roi_dct=lvl_split_roi_dct[lvl])
+                # update overlap value in roi overlap dictionary for this level
+                roi_ovlp_dct = cmt_roi_dct.get(cmt_idx, {})
+                inj_site = cic_plot.col_val(
+                    col_hdr_str='Injection Site',
+                    agg_overlap_csv_header=agg_overlap_csv_header,
+                    agg_overlap_csv_rows=agg_overlap_rows,
+                    grid_tup_str=grid_tup_str)
+                assert inj_site is not None
+                row_idx = row_roi_name_npa.tolist().index(inj_site)
 
-            roi_ovlp_dct[roi_str] = \
-                roi_ovlp_dct.get(roi_str, 0) + ctx_mat_npa[row_idx][idx]
+                roi_ovlp_dct[roi_str] = \
+                    roi_ovlp_dct.get(roi_str, 0) + ctx_mat_npa[row_idx][idx]
 
-            # point to all the potentially new dict vals
-            cmt_roi_dct[cmt_idx] = roi_ovlp_dct
+                # point to all the potentially new dict vals
+                cmt_roi_dct[cmt_idx] = roi_ovlp_dct
             lvl_cmt_dct[lvl] = cmt_roi_dct
 
     if verbose:
@@ -226,7 +242,7 @@ def main():
                              key=lambda (k, v): (v, k), reverse=True)
                 roi_str = "len lst {} ".format(len(lst))
                 roi_str = "({}) ".format(lst[0][0]).replace("|", " ")
-                for tup in lst[1:3]:
+                for tup in lst[1:1]:
                     roi_str += " ({})".format(tup[0]).replace("|", " ")
                     # create list of strings
                 cmt_top_roi_lst[cmt_idx].append(roi_str)
@@ -297,6 +313,9 @@ def main():
     base_agg_overlap_csv = 'stacked-' + os.path.basename(agg_overlap_csv)
     out_img_path = base_agg_overlap_csv.replace(
         '.csv', '-{}.png'.format(levels))
+    if focus_roi is not None:
+        out_img_path = out_img_path.replace('.png',
+                                            '-{}.png'.format(focus_roi))
     py.image.save_as(fig, out_img_path)
     if verbose:
         print("Finished plotting {} in {:.04}s".format(
