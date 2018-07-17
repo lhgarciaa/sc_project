@@ -29,6 +29,9 @@ def main():
                         help='List of levels to visualize',
                         required=True,
                         nargs='+')
+    parser.add_argument('-vimgs', '--visual_images',
+                        help='List of images for visualizing split ROIs',
+                        nargs='+')
     parser.add_argument('-iso', '--injection_site_order',
                         help='Order list for injection sites e.g. {}'.format(
                             '-iso BLA_am BLA_al BLA_ac'),
@@ -40,6 +43,10 @@ def main():
                         default=[])
     parser.add_argument('-fcs', '--focus_roi',
                         help='ROI to plot exclusively')
+    parser.add_argument('-gcs', '--grid_cell_size',
+                        help='Grid cell size to use for visual image',
+                        default=175,
+                        requred=False)
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
@@ -61,6 +68,8 @@ def main():
         else:
             roi_mode_dct[roi_mode_lst[0]] = 'quad'  # quad is default
     focus_roi = args.focus_roi
+    visual_images = args.visual_images
+    grid_cell_size = args.grid_cell_size
 
     # what we want to do here:
     #  1) Open all the freakin CSVs
@@ -113,6 +122,7 @@ def main():
         print("Creating community -> roi dictionary for levels {}...".
               format(levels))
         start = time.time()
+
     # first populate split roi dct
     lvl_split_roi_dct = {}  # { lvl: { roi: { min_col: ..., max_col,... } } }
     for idx, grid_tup_str in enumerate(col_roi_name_npa):
@@ -164,6 +174,17 @@ def main():
                 split_roi_dct[roi_str] = roi_dct
             lvl_split_roi_dct[lvl] = split_roi_dct
 
+    # now check if visual images list specified, and if so then write out imgs
+    if visual_images is not None:
+        assert len(visual_images) == len(levels)  # must be one image per lvl
+        for lvl_idx, lvl in enumerate(levels):
+            img_path = visual_images[lvl_idx]
+            assert lvl in img_path, "level {} not in {}... \nvisual image order {} does not match order level order {}".format(lvl, img_path, visual_images, levels)  # noqa
+            assert os.path.isfile(img_path)
+            if verbose:
+                print("making split roi image with {} gcs {}".format(
+                    img_path, grid_cell_size))
+
     # walk through each non-zero entry of ctx mat csv, get roi and bin by cmt
     lvl_cmt_dct = {}  # { lvl : cmt_roi_dct }
     for idx, grid_tup_str in enumerate(col_roi_name_npa):
@@ -201,8 +222,25 @@ def main():
                 assert inj_site is not None
                 row_idx = row_roi_name_npa.tolist().index(inj_site)
 
+                # do a few sanity checks before setting roi_ovlp_dct val
+                grid_only_str = cic_plot.col_val(
+                    col_hdr_str='GRID ONLY',
+                    agg_overlap_csv_header=agg_overlap_csv_header,
+                    agg_overlap_csv_rows=agg_overlap_rows,
+                    grid_tup_str=grid_tup_str)
+                overlap_str = cic_plot.col_val(
+                    col_hdr_str='OVERLAP',
+                    agg_overlap_csv_header=agg_overlap_csv_header,
+                    agg_overlap_csv_rows=agg_overlap_rows,
+                    grid_tup_str=grid_tup_str)
+                grid_only = float(grid_only_str)
+                overlap = int(overlap_str)
+                fraction_overlap = overlap / (grid_only + overlap)
+                assert ctx_mat_npa[row_idx][idx] == fraction_overlap, \
+                    "({}, {}) ctx mat overlap {} does not equal {} agg overlap {}".format(row_idx, idx, ctx_mat_npa[row_idx][idx], grid_tup_str, fraction_overlap)  # noqa
+                # use regular overlap pixel count since more intuitive
                 roi_ovlp_dct[roi_str] = \
-                    roi_ovlp_dct.get(roi_str, 0) + ctx_mat_npa[row_idx][idx]
+                    roi_ovlp_dct.get(roi_str, 0) + overlap
 
                 # point to all the potentially new dict vals
                 cmt_roi_dct[cmt_idx] = roi_ovlp_dct
@@ -220,7 +258,7 @@ def main():
                 print("Community {} roi count {} total ovlp {}".format(
                     injection_site_order[cmt_idx],
                     len(roi_ovlp_dct),
-                    sum([float(roi_ovlp_dct[roi]) for
+                    sum([roi_ovlp_dct[roi] for
                          roi in roi_ovlp_dct])))
 
     # 3) Plot DICT as a bar chart or matrix or something

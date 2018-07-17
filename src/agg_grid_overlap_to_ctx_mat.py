@@ -88,7 +88,8 @@ def main():
         #   Atlas Name, Atlas Version, Channel Number, Grid Size, Overlap
         # Format
         assert atlas_name == ATLAS_NAME
-        assert atlas_version == ATLAS_VERSION
+        assert atlas_version == ATLAS_VERSION, "{} does not equal {}".format(
+            atlas_version, ATLAS_VERSION)
         assert grid_size == GRID_SIZE
         assert overlap_format == OVERLAP_FORMAT
 

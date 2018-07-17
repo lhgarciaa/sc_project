@@ -1,7 +1,7 @@
 (dp1
 S'input_csv'
 p2
-S'test_data/roi_filter_thresh_ovlp/SW120228-02B/SW120228-02B_roi_filter_ch2_grid-350.csv'
+S'test_data/roi_filter_thresh_ovlp/SW120228-02B/SW120228-02B_roi_filter_ch2_grid-350_pixelcount.csv'
 p3
 sS'case_dir'
 p4
