@@ -4,11 +4,13 @@ import argparse
 from cic_dis import cic_utils
 from cic_dis import cic_plot
 from cic_dis import cic_overlap
+from cic_dis import cic_outspector
 import time
 import plotly.plotly as py
 import plotly.graph_objs as go
 from collections import defaultdict
 import os
+import cv2
 
 
 def main():
@@ -46,7 +48,7 @@ def main():
     parser.add_argument('-gcs', '--grid_cell_size',
                         help='Grid cell size to use for visual image',
                         default=175,
-                        requred=False)
+                        required=False)
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
@@ -182,8 +184,28 @@ def main():
             assert lvl in img_path, "level {} not in {}... \nvisual image order {} does not match order level order {}".format(lvl, img_path, visual_images, levels)  # noqa
             assert os.path.isfile(img_path)
             if verbose:
-                print("making split roi image with {} gcs {}".format(
+                start = time.time()
+                print("Making split roi image with {} and gcs {}...".format(
                     img_path, grid_cell_size))
+            split_roi_atlas_img = cic_outspector.make_split_roi_atlas_img(
+                atlas_tif_path=img_path,
+                gcs=grid_cell_size,
+                lvl=lvl,
+                split_roi_dct=lvl_split_roi_dct[lvl],
+                hemi='r',
+                agg_overlap_csv_header=agg_overlap_csv_header,
+                agg_overlap_csv_rows=agg_overlap_rows,
+                verbose=verbose)
+
+            split_roi_atlas_img_path = \
+                cic_outspector.split_roi_atlas_img_path(
+                    out_dir_path=os.path.dirname(img_path),
+                    atlas_tif_path=img_path)
+
+            cv2.imwrite(split_roi_atlas_img_path, split_roi_atlas_img)
+            if verbose:
+                print("done making split roi image in {:.04}s".format(
+                    time.time() - start))
 
     # walk through each non-zero entry of ctx mat csv, get roi and bin by cmt
     lvl_cmt_dct = {}  # { lvl : cmt_roi_dct }
