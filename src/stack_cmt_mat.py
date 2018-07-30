@@ -136,7 +136,7 @@ def main():
             row = int(row_str)
             # populate split_roi_dct either default, of from lvl
             # get roi and check if it is in the split_rois list
-            roi_str = cic_plot.col_val(
+            unsplit_roi_str = cic_plot.col_val(
                 col_hdr_str='REGION(S)',
                 agg_overlap_csv_header=agg_overlap_csv_header,
                 agg_overlap_csv_rows=agg_overlap_rows,
@@ -153,9 +153,12 @@ def main():
             else:
                 split_roi_dct = lvl_split_roi_dct[lvl]
 
-            # for roi_str in test, extract just the roi portion from roi:mode
-            if ((focus_roi is None or focus_roi == roi_str) and
-                    roi_str in [x.split(':')[0] for x in split_rois]):
+            roi_str = cic_plot.in_roi_lst(
+                unsplit_roi_str=unsplit_roi_str,
+                roi_str_lst=[x.split(':')[0] for x in split_rois])
+
+            if (roi_str is not None and
+                    (focus_roi is None or focus_roi in roi_str)):
                 if roi_str not in split_roi_dct:
                     roi_dct = {'min_col': col,
                                'max_col': col,
@@ -188,7 +191,7 @@ def main():
                 print("Making split roi image with {} and gcs {}...".format(
                     img_path, grid_cell_size))
             split_roi_atlas_img = cic_outspector.make_split_roi_atlas_img(
-                atlas_tif_path=img_path,
+                ann_atlas_tif_path=img_path,
                 gcs=grid_cell_size,
                 lvl=lvl,
                 split_roi_dct=lvl_split_roi_dct[lvl],
@@ -200,7 +203,9 @@ def main():
             split_roi_atlas_img_path = \
                 cic_outspector.split_roi_atlas_img_path(
                     out_dir_path=os.path.dirname(img_path),
-                    atlas_tif_path=img_path)
+                    atlas_tif_path=img_path,
+                    split_rois=split_rois,
+                    focus_roi=focus_roi)
 
             cv2.imwrite(split_roi_atlas_img_path, split_roi_atlas_img)
             if verbose:
@@ -222,16 +227,16 @@ def main():
                 grid_tup_str=grid_tup_str)
             assert cmt_idx is not None
             max_cmt_idx = max(max_cmt_idx, cmt_idx)
-            roi_str = cic_plot.col_val(
+            unsplit_roi_str = cic_plot.col_val(
                 col_hdr_str='REGION(S)',
                 agg_overlap_csv_header=agg_overlap_csv_header,
                 agg_overlap_csv_rows=agg_overlap_rows,
                 grid_tup_str=grid_tup_str)
-            assert roi_str is not None
-            if focus_roi is None or focus_roi == roi_str:
+            assert unsplit_roi_str is not None
+            if focus_roi is None or focus_roi in unsplit_roi_str:
                 # split rois if they are in lvl_split_roi_dct
                 roi_str = cic_plot.split_roi(
-                    roi=roi_str,
+                    unsplit_roi_str=unsplit_roi_str,
                     grid_tup_str=grid_tup_str,
                     split_roi_dct=lvl_split_roi_dct[lvl])
                 # update overlap value in roi overlap dictionary for this level
