@@ -11,6 +11,7 @@ import plotly.graph_objs as go
 from collections import defaultdict
 import os
 import cv2
+import cPickle as pickle
 
 
 def main():
@@ -386,6 +387,11 @@ def main():
         print("Finished plotting {} in {:.04}s".format(
             out_img_path,
             time.time() - start))
+
+    output_pickle_path = cic_utils.pickle_path(out_img_path)
+    pickle.dump(args, open(output_pickle_path, "wb"))
+    if verbose:
+        print("Wrote pickle args to {}".format(output_pickle_path))
 
 
 if __name__ == '__main__':
