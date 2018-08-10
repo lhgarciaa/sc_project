@@ -294,8 +294,10 @@ def main():
         print("Plotting a bar chart or matrix or something for {} levels and {} communities...".format(len(lvl_cmt_dct), max_cmt_idx + 1))  # noqa
         start = time.time()
 
+    # create top roi lst
+    num_top = 2
     if verbose:
-        print("creating top roi list...")
+        print("creating roi list of top {} rois ...".format(num_top))
     # create { cmt : [ [roi], ... ] } list of most projected roi for each cmt
     cmt_top_roi_lst = defaultdict(list)
     for lvl in sorted(lvl_cmt_dct):  # this will sort top ROIs correctly
@@ -308,10 +310,15 @@ def main():
                              key=lambda (k, v): (v, k), reverse=True)
                 roi_str = "len lst {} ".format(len(lst))
                 roi_str = "({}) ".format(lst[0][0]).replace("|", " ")
-                for tup in lst[1:1]:
+                for tup in lst[1:num_top]:
                     roi_str += " ({})".format(tup[0]).replace("|", " ")
                     # create list of strings
                 cmt_top_roi_lst[cmt_idx].append(roi_str)
+                if verbose:
+                    print("top roi(s) for lvl {} cmt {}: {}".format(
+                        lvl,
+                        injection_site_order[cmt_idx],
+                        roi_str))
             else:
                 cmt_top_roi_lst[cmt_idx].append('')
 
