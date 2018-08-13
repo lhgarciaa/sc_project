@@ -87,6 +87,18 @@ def main():
         start = time.time()
     (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
         cic_utils.read_ctx_mat(ctx_mat_csv)
+
+    # check for retrograde which has many rows going to few cols
+    if 'ret' in ctx_mat_csv:
+        assert len(row_roi_name_npa) > len(col_roi_name_npa)
+        col_roi_name_npa_tmp = col_roi_name_npa
+        col_roi_name_npa = row_roi_name_npa
+        row_roi_name_npa = col_roi_name_npa_tmp
+        ctx_mat_npa = ctx_mat_npa.transpose()
+        if verbose:
+            print('Detected retrograde in csv name, swapped row and cols')
+            print('and transposed matrix')
+
     # check for capitlization/duplicates
     cic_utils.dup_check_container(dup_check_roi_container=row_roi_name_npa,
                                   input_csv_path=ctx_mat_csv)
