@@ -28,9 +28,9 @@ def main():
     parser.add_argument('-ch', '--channel',
                         help='Case channel to write to output',
                         required=True)
-    parser.add_argument('-iso', '--injection_site_order',
-                        help='Order list for injection sites e.g. {}'.format(
-                            '-iso BLA_am BLA_al BLA_ac'),
+    parser.add_argument('-isc', '--injection_site_colors',
+                        help='List of injection sites color tuples e.g. {}'
+                        .format('-iso BLA_am:228:26:28 BLA_al:255:127:0'),
                         required=True,
                         nargs='+')
     parser.add_argument('-v', '--verbose',
@@ -58,8 +58,15 @@ def main():
 
     gcs = args['grid_cell_size']
     lvl = args['atlas_level']
-    inj_site_order_lst = args['injection_site_order']
-    assert len(inj_site_order_lst) > 0, "Invalid format for injection_site_order {}".format(injection_site_order)  # NOQA
+    inj_site_clr_lst = args['injection_site_colors']
+    assert len(inj_site_clr_lst) > 0, "Invalid format for injection_site_colors {}".format(args['injection_site_colors'])  # NOQA
+    for inj_site_tup in inj_site_clr_lst:
+        assert '::' in inj_site_tup, \
+            "Invalid injection site color tup {}".format(inj_site_tup)
+        assert ':' in inj_site_tup, \
+            "Invalid injection site color tup {}".format(inj_site_tup)
+    inj_site_clr_map = cic_plot.parse_inj_site_clr_lst(
+        inj_site_clr_lst=inj_site_clr_lst)
 
     verbose = args['verbose']
     annotated_atlas = args['annotated_atlas']
@@ -118,7 +125,7 @@ def main():
             gcs=int(gcs),
             lvl=int(lvl),
             hemi='r',
-            inj_site_order_lst=inj_site_order_lst,
+            inj_site_clr_map=inj_site_clr_map,
             verbose=verbose)
 
         if verbose:
