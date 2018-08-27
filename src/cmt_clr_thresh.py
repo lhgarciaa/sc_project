@@ -30,7 +30,7 @@ def main():
                         required=True)
     parser.add_argument('-isc', '--injection_site_colors',
                         help='List of injection sites color tuples e.g. {}'
-                        .format('-iso BLA_am:228:26:28 BLA_al:255:127:0'),
+                        .format('-iso BLA_am::228:26:28 BLA_al::255:127:0'),
                         required=True,
                         nargs='+')
     parser.add_argument('-v', '--verbose',
