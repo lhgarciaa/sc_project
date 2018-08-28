@@ -39,6 +39,12 @@ def main():
     for overlap_csv_path in overlap_csv_path_lst:
         (overlap_csv_meta_dct, overlap_header_lst, overlap_csv_rows) = \
             cic_overlap.read_overlap_csv(overlap_csv_path)
+        # let's get crazy let's go nuts let's add new meta stuff
+        if 'Connection Lens Version' not in overlap_csv_meta_dct.keys():
+            overlap_csv_meta_dct['Connection Lens Version'] = '2.4.0'
+        if 'Seconday Injection Site' not in overlap_csv_meta_dct.keys():
+            overlap_csv_meta_dct['Seconday Injection Site'] = 'None'
+
         if len(all_rows) == 0:
             meta_dct_keys = sorted(overlap_csv_meta_dct.keys())
             new_header = meta_dct_keys + overlap_header_lst
