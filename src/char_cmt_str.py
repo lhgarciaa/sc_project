@@ -143,6 +143,7 @@ def main():
     print_dict[(0.5, 'gamma')] = louvain_run_arr_dict[0]['gamma']
     print_dict[(0.6, 'mean part sim')] = mean_var[0]
     print_dict[(0.7, 'var part sim')] = mean_var[1]
+    print_dict[(0.8, 'len con cmt str')] = len(cons_cmt_str)
     print_dict[(1, 'max num com')] = np.max(num_com_npa)
     print_dict[(2, 'mean num com')] = np.mean(num_com_npa)
     print_dict[(3, 'std dev num com')] = np.std(num_com_npa)
