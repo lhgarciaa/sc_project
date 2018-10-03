@@ -39,26 +39,32 @@ def main():
     # get max row
     max_row_idx = -1
     max_total = -1
-    for idx in xrange(len(col_roi_name_npa)):
+    for idx in xrange(len(row_roi_name_npa)):
         if cic_utils.row_total(ctx_mat_npa=ctx_mat_npa, idx=idx) > max_total:
             max_row_idx = idx
             max_total = cic_utils.row_total(ctx_mat_npa=ctx_mat_npa, idx=idx)
 
     if verbose:
+        print("Found max total of {} at row index {}".format(
+            max_total, max_row_idx))
         print("writing to {}".format(output_ctx_mat_csv))
     with open(output_ctx_mat_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
         header_row = [''] + list(col_roi_name_npa)
         csvwriter.writerow(header_row)
-        for idx in xrange(len(col_roi_name_npa)):
+        for idx in xrange(len(row_roi_name_npa)):
             # now normalize to max and write
             if idx != max_row_idx:
                 row_total = cic_utils.row_total(ctx_mat_npa=ctx_mat_npa,
                                                 idx=idx)
+                fact = float(max_total)/float(row_total)
+                if verbose:
+                    print("Normalizing row index {} with factor {}".format(
+                        idx, fact))
                 norm_row = cic_utils.elem_mult(
                     ctx_mat_npa=ctx_mat_npa,
                     idx=idx,
-                    fact=float(max_total)/float(row_total),
+                    fact=fact,
                     max_prod=1.0)
 
                 csvwriter.writerow([row_roi_name_npa[idx]] + list(norm_row))
