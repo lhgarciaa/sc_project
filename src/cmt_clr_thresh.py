@@ -110,11 +110,15 @@ def main():
             gcs=gcs)
         assert overlap_path is not None, "overlap {} not found".format(
             overlap_path)
+        if verbose:
+            print("opened overlap {}".format(overlap_path))
         atlas_tif_path = cic_outspector.atlas_tif_path(
             lvl=lvl,
             annotated_atlas=False)
         assert atlas_tif_path is not None, "atlas tif {} not found".format(
             atlas_tif_path)
+        if verbose:
+            print("opened atlas {}".format(atlas_tif_path))
         # use communities defined in input_csv_path to color threshold in
         #  thresh_tif_path at regions overlapped in overlap_path
         cmt_clr_thresh_img = cic_outspector.cmt_clr_thresh(
