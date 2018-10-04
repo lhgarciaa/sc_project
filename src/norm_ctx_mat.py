@@ -45,8 +45,8 @@ def main():
             max_total = cic_utils.row_total(ctx_mat_npa=ctx_mat_npa, idx=idx)
 
     if verbose:
-        print("Found max total of {} at {} row".format(
-            max_total, row_roi_name_npa[max_row_idx]))
+        print("Found row {} as max total sum with {}".format(
+            row_roi_name_npa[max_row_idx], max_total))
         print("writing to {}".format(output_ctx_mat_csv))
     with open(output_ctx_mat_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -59,8 +59,8 @@ def main():
                                                 idx=idx)
                 fact = float(max_total)/float(row_total)
                 if verbose:
-                    print("Normalizing {} row with factor {}".format(
-                        row_roi_name_npa[idx], fact))
+                    print("Normalizing {} row total {} with factor {}".format(
+                        row_roi_name_npa[idx], row_total, fact))
                 norm_row = cic_utils.elem_mult(
                     ctx_mat_npa=ctx_mat_npa,
                     idx=idx,
