@@ -24,6 +24,7 @@ def main():
 
     input_csv_path = args['input_ctx_mat_csv']
     output_ctx_mat_csv = args['output_ctx_mat_csv']
+    MODE = 'anterograde'
     verbose = args['verbose']
 
     # check input path is actually valid
@@ -36,41 +37,102 @@ def main():
     (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
         cic_utils.read_ctx_mat(input_csv_path)
 
-    # get max row
-    max_row_idx = -1
-    max_total = -1
-    for idx in xrange(len(row_roi_name_npa)):
-        if cic_utils.row_total(ctx_mat_npa=ctx_mat_npa, idx=idx) > max_total:
-            max_row_idx = idx
-            max_total = cic_utils.row_total(ctx_mat_npa=ctx_mat_npa, idx=idx)
+    # use a simple method to determine if anterograde or retrograde
+    #  more importantly, operate on rows or columns accordingly
+    if 'ret' in input_csv_path:
+        MODE = 'retrograde'
 
-    if verbose:
-        print("Found row {} as max total sum with {}".format(
-            row_roi_name_npa[max_row_idx], max_total))
-        print("writing to {}".format(output_ctx_mat_csv))
+    if MODE == 'anterograde':
+        # get max row
+        max_row_idx = -1
+        max_total = -1
+        for idx in xrange(len(row_roi_name_npa)):
+            if(cic_utils.row_total(ctx_mat_npa=ctx_mat_npa, idx=idx) >
+               max_total):
+                max_row_idx = idx
+                max_total = cic_utils.row_total(ctx_mat_npa=ctx_mat_npa,
+                                                idx=idx)
+        if verbose:
+            print("Found row {} as max total sum with {}".format(
+                row_roi_name_npa[max_row_idx], max_total))
+
+    if MODE == 'retrograde':
+        # get max col
+        max_col_idx = -1
+        max_total = -1
+        for idx in xrange(len(col_roi_name_npa)):
+            if(cic_utils.col_total(ctx_mat_npa=ctx_mat_npa, idx=idx) >
+               max_total):
+                max_col_idx = idx
+                max_total = cic_utils.col_total(ctx_mat_npa=ctx_mat_npa,
+                                                idx=idx)
+        if verbose:
+            print("Found col {} as max total sum with {}".format(
+                col_roi_name_npa[max_col_idx], max_total))
+
     with open(output_ctx_mat_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
-        header_row = [''] + list(col_roi_name_npa)
-        csvwriter.writerow(header_row)
-        for idx in xrange(len(row_roi_name_npa)):
-            # now normalize to max and write
-            if idx != max_row_idx:
-                row_total = cic_utils.row_total(ctx_mat_npa=ctx_mat_npa,
-                                                idx=idx)
-                fact = float(max_total)/float(row_total)
-                if verbose:
-                    print("Normalizing {} row total {} with factor {}".format(
-                        row_roi_name_npa[idx], row_total, fact))
-                norm_row = cic_utils.elem_mult(
-                    ctx_mat_npa=ctx_mat_npa,
-                    idx=idx,
-                    fact=fact,
-                    max_prod=1.0)
 
+        if MODE == 'anterograde':
+            header_row = [''] + list(col_roi_name_npa)
+            csvwriter.writerow(header_row)
+            for idx in xrange(len(row_roi_name_npa)):
+                # now normalize to max and write
+                if idx != max_row_idx:
+                    row_total = cic_utils.row_total(ctx_mat_npa=ctx_mat_npa,
+                                                    idx=idx)
+                    fact = float(max_total)/float(row_total)
+                    if verbose:
+                        print(
+                            "Normalizing {} row total {} with factor {}".
+                            format(row_roi_name_npa[idx], row_total, fact))
+                    norm_row = cic_utils.row_elem_mult(
+                        ctx_mat_npa=ctx_mat_npa,
+                        idx=idx,
+                        fact=fact,
+                        max_prod=1.0)
+
+                    csvwriter.writerow([row_roi_name_npa[idx]] +
+                                       list(norm_row))
+                else:
+                    csvwriter.writerow([row_roi_name_npa[idx]] +
+                                       list(ctx_mat_npa[idx]))
+
+        elif MODE == 'retrograde':
+            header_row = [''] + list(col_roi_name_npa)
+            csvwriter.writerow(header_row)
+            norm_cols = []
+            for idx in xrange(len(col_roi_name_npa)):
+                # now normalize to max and write
+                if idx != max_col_idx:
+                    col_total = cic_utils.col_total(ctx_mat_npa=ctx_mat_npa,
+                                                    idx=idx)
+                    fact = float(max_total)/float(col_total)
+                    if verbose:
+                        print(
+                            "Normalizing {} col total {} with factor {}".
+                            format(col_roi_name_npa[idx], col_total, fact))
+                    norm_col = cic_utils.col_elem_mult(
+                        ctx_mat_npa=ctx_mat_npa,
+                        idx=idx,
+                        fact=fact,
+                        max_prod=1.0)
+                else:
+                    norm_col = ctx_mat_npa[:, idx]
+
+                norm_cols.append(norm_col)
+
+            # zip the columns into rows of len(col_roi_name_npa) length
+            norm_rows = zip(*norm_cols)
+
+            for idx, norm_row in enumerate(norm_rows):
                 csvwriter.writerow([row_roi_name_npa[idx]] + list(norm_row))
-            else:
-                csvwriter.writerow([row_roi_name_npa[idx]] +
-                                   list(ctx_mat_npa[idx]))
+
+        else:
+            assert 0, "invalid mode {}".format(MODE)
+
+    if verbose:
+        print("wrote to {}".format(output_ctx_mat_csv))
 
     output_pickle_path = cic_utils.pickle_path(output_ctx_mat_csv)
     pickle_dct = cic_utils.pickle_dct(args)
