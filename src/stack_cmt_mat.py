@@ -50,6 +50,9 @@ def main():
                         help='Grid cell size to use for visual image',
                         default=175,
                         required=False)
+    parser.add_argument('-norm', '--norm_mode',
+                        help='Indicates that matrix values are normalized',
+                        action='store_true')
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
@@ -72,7 +75,8 @@ def main():
             roi_mode_dct[roi_mode_lst[0]] = 'quad'  # quad is default
     focus_roi = args.focus_roi
     visual_images = args.visual_images
-    grid_cell_size = args.grid_cell_size
+    grid_cell_size = int(args.grid_cell_size)
+    norm_mode = args.norm_mode
 
     # what we want to do here:
     #  1) Open all the freakin CSVs
@@ -114,9 +118,8 @@ def main():
     if verbose:
         print("Opening char com str csv {}...".format(char_com_str_csv))
         start = time.time()
-    cons_cmt_str = cic_plot.cons_cmt_str(
-        cons_cmt_csv_path=char_com_str_csv,
-        inj_site_order_lst=injection_site_order)
+    cons_cmt_str = cic_plot.cons_cmt_str(cons_cmt_csv_path=char_com_str_csv)
+
     if verbose:
         print("opened char com str csv in {:.04}s".format(time.time() - start))
         print("num communities {}".format(len(cons_cmt_str)))
@@ -276,11 +279,29 @@ def main():
                 grid_only = float(grid_only_str)
                 overlap = int(overlap_str)
                 fraction_overlap = overlap / (grid_only + overlap)
-                assert ctx_mat_npa[row_idx][idx] == fraction_overlap, \
-                    "({}, {}) ctx mat overlap {} does not equal {} agg overlap {}".format(row_idx, idx, ctx_mat_npa[row_idx][idx], grid_tup_str, fraction_overlap)  # noqa
+                assert fraction_overlap <= 1.0
+                assert ctx_mat_npa[row_idx][idx] <= 1.0
+                if not norm_mode:
+                    assert ctx_mat_npa[row_idx][idx] == fraction_overlap, \
+                        "({}, {}) ctx mat overlap {} does not equal {} agg overlap {}".format(row_idx, idx, ctx_mat_npa[row_idx][idx], grid_tup_str, fraction_overlap)  # noqa
                 # use regular overlap pixel count since more intuitive
+                #  if norm mode then calculate overlap using norm ctx mat
+                if norm_mode:
+                    # we know that overlap should be the fract overlap * gcs**2
+                    norm_overlap = int(ctx_mat_npa[row_idx][idx] *
+                                       pow(grid_cell_size, 2))
+                    if verbose:
+                        if ctx_mat_npa[row_idx][idx] != fraction_overlap:
+                            print("using norm overlap {} vs {}".format(
+                                norm_overlap, overlap))
+                    roi_ovlp_dct[roi_str] = \
+                        roi_ovlp_dct.get(roi_str, 0) + norm_overlap
+                    dct_overlap = norm_overlap
+                else:
+                    dct_overlap = overlap
+
                 roi_ovlp_dct[roi_str] = \
-                    roi_ovlp_dct.get(roi_str, 0) + overlap
+                    roi_ovlp_dct.get(roi_str, 0) + dct_overlap
 
                 # point to all the potentially new dict vals
                 cmt_roi_dct[cmt_idx] = roi_ovlp_dct
@@ -395,9 +416,15 @@ def main():
     )
 
     fig = go.Figure(data=data, layout=layout)
-    base_agg_overlap_csv = 'stacked-' + os.path.basename(agg_overlap_csv)
+    if norm_mode:
+        base_agg_overlap_csv = 'norm_stacked-' + os.path.basename(
+            agg_overlap_csv)
+    else:
+        base_agg_overlap_csv = 'stacked-' + os.path.basename(
+            agg_overlap_csv)
     out_img_path = base_agg_overlap_csv.replace(
         '.csv', '-{}.png'.format(levels))
+
     if focus_roi is not None:
         out_img_path = out_img_path.replace('.png',
                                             '-{}.png'.format(focus_roi))
