@@ -35,11 +35,11 @@ def main():
     parser.add_argument('-vimgs', '--visual_images',
                         help='List of images for visualizing split ROIs',
                         nargs='+')
-    parser.add_argument('-iso', '--injection_site_order',
-                        help='Order list for injection sites e.g. {}'.format(
-                            '-iso BLA_am BLA_al BLA_ac'),
-                        nargs='+',
-                        default=[])
+    parser.add_argument('-isc', '--injection_site_colors',
+                        help='List of injection sites color tuples e.g. {}'
+                        .format('-iso BLA_am::228:26:28 BLA_al::255:127:0'),
+                        required=True,
+                        nargs='+')
     parser.add_argument('-srs', '--split_rois',
                         help="List of ROIs to split into quadrants, can specify mode with e.g. 'ACB:mdlvl', if no mode specified then 'quad' is default",  # noqa
                         nargs='+',
@@ -63,7 +63,18 @@ def main():
     agg_overlap_csv = args.agg_overlap_csv
     levels = args.levels
     verbose = args.verbose
-    injection_site_order = args.injection_site_order
+
+    # get, check and parse injecction site color list
+    inj_site_clr_lst = args.injection_site_colors
+    assert len(inj_site_clr_lst) > 0, "Invalid format for injection_site_colors {}".format(args['injection_site_colors'])  # NOQA
+    for inj_site_tup in inj_site_clr_lst:
+        assert '::' in inj_site_tup, \
+            "Invalid injection site color tup {}".format(inj_site_tup)
+        assert ':' in inj_site_tup, \
+            "Invalid injection site color tup {}".format(inj_site_tup)
+    inj_site_clr_map, inj_site_lst = cic_plot.parse_inj_site_clr_lst(
+        inj_site_clr_lst=inj_site_clr_lst)
+
     split_rois = args.split_rois
     # create dct for roi mode lookup later
     roi_mode_dct = {}
@@ -81,7 +92,7 @@ def main():
     # what we want to do here:
     #  1) Open all the freakin CSVs
     #  2) Create a DICT from community to roi list of rois with overlap amount
-    #     { lvl: { cmt_idx : { roi : ovlp } } }
+    #     { lvl: { cmt_inj_site : { roi : ovlp } } }
     #  3) Plot DICT as a bar chart or matrix or something
 
     # 1) opening all the freakin CSVs
@@ -135,7 +146,7 @@ def main():
         print("num rows {}".format(len(agg_overlap_rows)))
 
     # 2) Creating a DICT {cmt : frozenset([roi])}
-    max_cmt_idx = -1
+    all_cmt_inj_sites_set = frozenset()
     if verbose:
         print("Creating community -> roi dictionary for levels {}...".
               format(levels))
@@ -236,13 +247,15 @@ def main():
             lvl = cic_plot.grid_tup_str_to_lvl_hemi_col_row(grid_tup_str)[0]
             if lvl not in lvl_cmt_dct:
                 print("populating roi overlap values, level {}...".format(lvl))
-            # { lvl : { cmt_idx { roi : ovlp } } }
+            # { lvl : { cmt_inj_site { roi : ovlp } } }
             cmt_roi_dct = lvl_cmt_dct.get(lvl, {})
-            cmt_idx = cic_plot.cmt_idx_from_grid_tup_str(
+            cmt_inj_site_lst = cic_plot.cmt_inj_site_lst_from_grid_tup_str(
                 cons_cmt_str=cons_cmt_str,
                 grid_tup_str=grid_tup_str)
-            assert cmt_idx is not None
-            max_cmt_idx = max(max_cmt_idx, cmt_idx)
+            assert len(cmt_inj_site_lst) == 1, print(cmt_inj_site_lst)
+            all_cmt_inj_sites_set = all_cmt_inj_sites_set.union(
+                cmt_inj_site_lst)
+            cmt_inj_site = cmt_inj_site_lst[0]
             unsplit_roi_str = cic_plot.col_val(
                 col_hdr_str='REGION(S)',
                 agg_overlap_csv_header=agg_overlap_csv_header,
@@ -256,7 +269,7 @@ def main():
                     grid_tup_str=grid_tup_str,
                     split_roi_dct=lvl_split_roi_dct[lvl])
                 # update overlap value in roi overlap dictionary for this level
-                roi_ovlp_dct = cmt_roi_dct.get(cmt_idx, {})
+                roi_ovlp_dct = cmt_roi_dct.get(cmt_inj_site, {})
                 inj_site = cic_plot.col_val(
                     col_hdr_str='Injection Site',
                     agg_overlap_csv_header=agg_overlap_csv_header,
@@ -281,30 +294,16 @@ def main():
                 fraction_overlap = overlap / (grid_only + overlap)
                 assert fraction_overlap <= 1.0
                 assert ctx_mat_npa[row_idx][idx] <= 1.0
-                if not norm_mode:
-                    assert ctx_mat_npa[row_idx][idx] == fraction_overlap, \
-                        "({}, {}) ctx mat overlap {} does not equal {} agg overlap {}".format(row_idx, idx, ctx_mat_npa[row_idx][idx], grid_tup_str, fraction_overlap)  # noqa
+                assert ctx_mat_npa[row_idx][idx] == fraction_overlap, \
+                    "({}, {}) ctx mat overlap {} does not equal {} agg overlap {}".format(row_idx, idx, ctx_mat_npa[row_idx][idx], grid_tup_str, fraction_overlap)  # noqa
                 # use regular overlap pixel count since more intuitive
-                #  if norm mode then calculate overlap using norm ctx mat
-                if norm_mode:
-                    # we know that overlap should be the fract overlap * gcs**2
-                    norm_overlap = int(ctx_mat_npa[row_idx][idx] *
-                                       pow(grid_cell_size, 2))
-                    if verbose:
-                        if ctx_mat_npa[row_idx][idx] != fraction_overlap:
-                            print("using norm overlap {} vs {}".format(
-                                norm_overlap, overlap))
-                    roi_ovlp_dct[roi_str] = \
-                        roi_ovlp_dct.get(roi_str, 0) + norm_overlap
-                    dct_overlap = norm_overlap
-                else:
-                    dct_overlap = overlap
+                dct_overlap = overlap
 
                 roi_ovlp_dct[roi_str] = \
                     roi_ovlp_dct.get(roi_str, 0) + dct_overlap
 
                 # point to all the potentially new dict vals
-                cmt_roi_dct[cmt_idx] = roi_ovlp_dct
+                cmt_roi_dct[cmt_inj_site] = roi_ovlp_dct
             lvl_cmt_dct[lvl] = cmt_roi_dct
 
     if verbose:
@@ -314,18 +313,23 @@ def main():
             print("-- Level {} --".format(lvl))
             cmt_roi_dct = lvl_cmt_dct[lvl]
             print("Num communities {}".format(len(cmt_roi_dct)))
-            for cmt_idx in sorted(cmt_roi_dct.keys()):
-                roi_ovlp_dct = cmt_roi_dct[cmt_idx]
+            for cmt_inj_site in sorted(cmt_roi_dct.keys()):
+                roi_ovlp_dct = cmt_roi_dct[cmt_inj_site]
                 print("Community {} roi count {} total ovlp {}".format(
-                    injection_site_order[cmt_idx],
+                    cmt_inj_site,
                     len(roi_ovlp_dct),
                     sum([roi_ovlp_dct[roi] for
                          roi in roi_ovlp_dct])))
 
+    # make new all_cmt_inj_sites that matches order of inj site color list
+    assert len(all_cmt_inj_sites_set) == len(inj_site_lst)
+    all_cmt_inj_sites = inj_site_lst
+
     # 3) Plot DICT as a bar chart or matrix or something
     if verbose:
-        print("Plotting a bar chart or matrix or something for {} levels and {} communities...".format(len(lvl_cmt_dct), max_cmt_idx + 1))  # noqa
+        print("Plotting a bar chart or matrix or something for {} levels and {} communities...".format(len(lvl_cmt_dct), len(all_cmt_inj_sites) + 1))  # noqa
         start = time.time()
+        print("injection site order is {}".format(all_cmt_inj_sites))
 
     # create top roi lst
     num_top = 2
@@ -336,47 +340,49 @@ def main():
     for lvl in sorted(lvl_cmt_dct):  # this will sort top ROIs correctly
         cmt_roi_dct = lvl_cmt_dct[lvl]
         # not every level has every community
-        for cmt_idx in xrange(max_cmt_idx + 1):
-            if cmt_idx in cmt_roi_dct:
+        for cmt_inj_site in all_cmt_inj_sites:
+            if cmt_inj_site in cmt_roi_dct:
                 # lst of tups will be sorted by overlap value
-                lst = sorted(cmt_roi_dct[cmt_idx].iteritems(),
+                lst = sorted(cmt_roi_dct[cmt_inj_site].iteritems(),
                              key=lambda (k, v): (v, k), reverse=True)
                 roi_str = "len lst {} ".format(len(lst))
                 roi_str = "({}) ".format(lst[0][0]).replace("|", " ")
                 for tup in lst[1:num_top]:
                     roi_str += " ({})".format(tup[0]).replace("|", " ")
                     # create list of strings
-                cmt_top_roi_lst[cmt_idx].append(roi_str)
+                cmt_top_roi_lst[cmt_inj_site].append(roi_str)
                 if verbose:
                     print("top roi(s) for lvl {} cmt {}: {}".format(
                         lvl,
-                        injection_site_order[cmt_idx],
+                        cmt_inj_site,
                         roi_str))
             else:
-                cmt_top_roi_lst[cmt_idx].append('')
+                cmt_top_roi_lst[cmt_inj_site].append('')
 
     if verbose:
         print("making traces for each community...")
     # create traces, or levels that will be plotted as bars
     # first create the values
-    cmt_trace_y_dct = defaultdict(list)  # { cmt_idx : [ lvl trace val, ...] }
+    # { cmt_inj_site : [ lvl trace val, ...] }
+    cmt_trace_y_dct = defaultdict(list)
     # populate total overlap per level for normalization
     lvl_trace_total_dct = defaultdict(float)
     for lvl in sorted(lvl_cmt_dct):  # this will sort trace values correctly
         # append number of rois in each community for each cmt
         cmt_roi_dct = lvl_cmt_dct[lvl]
         # not every level has equal num communities, check for that
-        for cmt_idx in xrange(max_cmt_idx + 1):
-            if cmt_idx in cmt_roi_dct:
-                roi_ovlp_dct = cmt_roi_dct[cmt_idx]
+        for cmt_inj_site in all_cmt_inj_sites:
+            if cmt_inj_site in cmt_roi_dct:
+                roi_ovlp_dct = cmt_roi_dct[cmt_inj_site]
                 # append num rois to cmt_trace_y_dct
-                cmt_trace_y_dct[cmt_idx].append(
+                cmt_trace_y_dct[cmt_inj_site].append(
                     sum([float(roi_ovlp_dct[roi]) for roi in roi_ovlp_dct]))
                 lvl_trace_total_dct[lvl] = \
                     lvl_trace_total_dct[lvl] + \
                     sum([float(roi_ovlp_dct[roi]) for roi in roi_ovlp_dct])
             else:
-                cmt_trace_y_dct[cmt_idx].append(0)  # append 0 amount of trace
+                # append 0 amount of trace
+                cmt_trace_y_dct[cmt_inj_site].append(0)
 
     if verbose:
         print("normalizing traces to 100% ...")
@@ -385,27 +391,34 @@ def main():
     # need to sort this too since cmt_trace_y_dct points to a list
     for lvl_idx, lvl in enumerate(sorted(lvl_cmt_dct)):
         cmt_roi_dct = lvl_cmt_dct[lvl]
-        for cmt_idx in sorted(cmt_roi_dct):
-            # normalize to 100% using level values
-            cmt_trace_y_dct[cmt_idx][lvl_idx] = \
-                (float(cmt_trace_y_dct[cmt_idx][lvl_idx]) /
-                 lvl_trace_total_dct[lvl]) * 100.0
+        for cmt_inj_site in all_cmt_inj_sites:  # do it this way for ordering
+            if cmt_inj_site in cmt_roi_dct:
+                # normalize to 100% using level values
+                cmt_trace_y_dct[cmt_inj_site][lvl_idx] = \
+                    (float(cmt_trace_y_dct[cmt_inj_site][lvl_idx]) /
+                     lvl_trace_total_dct[lvl]) * 100.0
 
     if verbose:
         print("populating graph object and writing file...")
     # now populate graph object
     # not all lvels have all communities, so use global max to cover all
     traces = []
-    for cmt_idx in xrange(max_cmt_idx + 1):
+    for cmt_inj_site in all_cmt_inj_sites:
         traces.append(
             go.Bar(
                 # don't forget to sort here bro
                 x=["lvl {}".format(x) for x in sorted(lvl_cmt_dct)],
-                y=cmt_trace_y_dct[cmt_idx],
-                text=cmt_top_roi_lst[cmt_idx],
+                y=cmt_trace_y_dct[cmt_inj_site],
+                text=cmt_top_roi_lst[cmt_inj_site],
                 textposition='auto',
+                textfont=dict(
+                    color='rgb(255, 255, 255)'
+                ),
+                marker=dict(
+                    color='rgb{}'.format(inj_site_clr_map[cmt_inj_site])
+                ),
                 name="{} community".format(
-                    injection_site_order[cmt_idx]))
+                    cmt_inj_site)),
         )
 
     data = traces
