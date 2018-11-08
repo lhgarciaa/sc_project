@@ -44,8 +44,9 @@ def main():
                         help="List of ROIs to split into quadrants, can specify mode with e.g. 'ACB:mdlvl', if no mode specified then 'quad' is default",  # noqa
                         nargs='+',
                         default=[])
-    parser.add_argument('-fcs', '--focus_roi',
-                        help='ROI to plot exclusively')
+    parser.add_argument('-fcs', '--focus_roi_lst',
+                        help='ROIs to plot exclusively',
+                        nargs='+')
     parser.add_argument('-gcs', '--grid_cell_size',
                         help='Grid cell size to use for visual image',
                         default=175,
@@ -84,7 +85,7 @@ def main():
             roi_mode_dct[roi_mode_lst[0]] = roi_mode_lst[1]
         else:
             roi_mode_dct[roi_mode_lst[0]] = 'quad'  # quad is default
-    focus_roi = args.focus_roi
+    focus_roi_lst = args.focus_roi_lst
     visual_images = args.visual_images
     grid_cell_size = int(args.grid_cell_size)
     norm_mode = args.norm_mode
@@ -185,7 +186,9 @@ def main():
                 roi_str_lst=[x.split(':')[0] for x in split_rois])
 
             if (roi_str is not None and
-                    (focus_roi is None or focus_roi in roi_str)):
+                    (focus_roi_lst is None or cic_plot.in_focus_roi_lst(
+                        roi_str=roi_str,
+                        focus_roi_lst=focus_roi_lst))):
                 if roi_str not in split_roi_dct:
                     roi_dct = {'min_col': col,
                                'max_col': col,
@@ -232,7 +235,7 @@ def main():
                     out_dir_path=os.path.dirname(img_path),
                     atlas_tif_path=img_path,
                     split_rois=split_rois,
-                    focus_roi=focus_roi)
+                    focus_roi_lst=focus_roi_lst)
 
             cv2.imwrite(split_roi_atlas_img_path, split_roi_atlas_img)
             if verbose:
@@ -262,7 +265,10 @@ def main():
                 agg_overlap_csv_rows=agg_overlap_rows,
                 grid_tup_str=grid_tup_str)
             assert unsplit_roi_str is not None
-            if focus_roi is None or focus_roi in unsplit_roi_str:
+            if focus_roi_lst is None or cic_plot.in_roi_lst(
+                    unsplit_roi_str,
+                    roi_str_lst=focus_roi_lst):
+
                 # split rois if they are in lvl_split_roi_dct
                 roi_str = cic_plot.split_roi(
                     unsplit_roi_str=unsplit_roi_str,
@@ -322,7 +328,8 @@ def main():
                          roi in roi_ovlp_dct])))
 
     # make new all_cmt_inj_sites that matches order of inj site color list
-    assert len(all_cmt_inj_sites_set) == len(inj_site_lst)
+    assert len(all_cmt_inj_sites_set) == len(inj_site_lst), "{} != {}".format(
+        sorted(all_cmt_inj_sites_set), sorted(inj_site_lst))
     all_cmt_inj_sites = inj_site_lst
 
     # 3) Plot DICT as a bar chart or matrix or something
@@ -436,11 +443,17 @@ def main():
         base_agg_overlap_csv = 'stacked-' + os.path.basename(
             agg_overlap_csv)
     out_img_path = base_agg_overlap_csv.replace(
-        '.csv', '-{}.png'.format(levels))
+        '.csv', '_lvls-{}.png'.format(levels))
 
-    if focus_roi is not None:
+    if focus_roi_lst is not None:
         out_img_path = out_img_path.replace('.png',
-                                            '-{}.png'.format(focus_roi))
+                                            '_fcs-{}.png'.format(
+                                                focus_roi_lst))
+    out_img_path = out_img_path.replace(",", "")
+    out_img_path = out_img_path.replace("'", "")
+    out_img_path = out_img_path.replace("[", "")
+    out_img_path = out_img_path.replace("]", "")
+    out_img_path = out_img_path.replace(" ", "")
     py.image.save_as(fig, out_img_path)
     if verbose:
         print("Finished plotting {} in {:.04}s".format(
