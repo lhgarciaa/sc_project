@@ -65,7 +65,7 @@ def main():
             "Invalid injection site color tup {}".format(inj_site_tup)
         assert ':' in inj_site_tup, \
             "Invalid injection site color tup {}".format(inj_site_tup)
-    inj_site_clr_map = cic_plot.parse_inj_site_clr_lst(
+    (inj_site_clr_map, inj_site_lst) = cic_plot.parse_inj_site_clr_lst(
         inj_site_clr_lst=inj_site_clr_lst)
 
     verbose = args['verbose']

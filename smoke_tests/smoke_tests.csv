@@ -1,13 +1,12 @@
 COMMAND, OUTPUT_PATH, EXP_CONTENT_PATH
 # test testing setup
 echo "hi there" > smoke_tests/hi_there.txt, smoke_tests/hi_there.txt, smoke_tests/exp_hi_there.txt
-# test NORMALIZE RETROGRADE CTX MATRIX
-python src/norm_ctx_mat.py -i test_data/test_norm_ctx_mat_ret.csv -o smoke_tests/norm_ctx_mat_ret.csv -v, smoke_tests/norm_ctx_mat_ret.csv, smoke_tests/exp_norm_ctx_mat_ret.csv
-# test COLORIZE THRESHOLD for JUST NORMAL SW120228-02B 100 gcs 350 ch 2
-# test NORMALIZE ANTEROGRADE CTX MATRIX
-python src/norm_ctx_mat.py -i test_data/test_norm_ctx_mat.csv -o smoke_tests/norm_ctx_mat.csv, smoke_tests/norm_ctx_mat.csv, smoke_tests/exp_norm_ctx_mat.csv
 # test COLORIZE THRESHOLD for JUST NORMAL SW120228-02B 100 gcs 350 ch 2
 python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -isc BLA_am::228:26:28 BLA_al::255:127:0 BLA_ac::255:255:51 -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 2 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/2/SW120228-02B_3_05_ch2-th_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch2-th_cmt_clr.tif
+# test NORMALIZE RETROGRADE CTX MATRIX
+python src/norm_ctx_mat.py -i test_data/test_norm_ctx_mat_ret.csv -o smoke_tests/norm_ctx_mat_ret.csv -v, smoke_tests/norm_ctx_mat_ret.csv, smoke_tests/exp_norm_ctx_mat_ret.csv
+# test NORMALIZE ANTEROGRADE CTX MATRIX
+python src/norm_ctx_mat.py -i test_data/test_norm_ctx_mat.csv -o smoke_tests/norm_ctx_mat.csv, smoke_tests/norm_ctx_mat.csv, smoke_tests/exp_norm_ctx_mat.csv
 # test colorize threshold for NORMAL AND FILTERED SW120228-02B 100 gcs 350 ch 3
 python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -isc BLA_am::228:26:28 BLA_al::255:127:0 BLA_ac::255:255:51 -cd test_data/cmt_clr_thresh/SW120228-02B/ -ch 3 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/SW120228-02B/threshold/channels/3/SW120228-02B_3_05_ch3-th_roi_filter_cmt_clr.tif, smoke_tests/exp_SW120228-02B_3_05_ch3-th_roi_filter_cmt_clr.tif
 # test AGGREGATE CMT CLR for SW120228-02B al 100 gcs 350 channel 5 and 3 and missing level in SW1999999-09B
