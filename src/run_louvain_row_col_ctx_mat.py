@@ -68,6 +68,10 @@ def main():
     (row_roi_name_npa, col_roi_name_npa, ctx_mat_npa) = \
         cic_utils.read_ctx_mat(input_csv_path)
 
+    assert len(col_roi_name_npa) == ctx_mat_npa.shape[1], \
+        "ERROR length col_roi_name_npa {} != ctx_mat_npa cols {}". \
+        format(len(col_roi_name_npa), ctx_mat_npa.shape[1])
+
     if verbose:
         print("{}".format(time.strftime("%m-%d-%Y %H:%M:%S", time.gmtime())))
         print("running louvain {} times using {} slots with gamma {}\non {}".
@@ -92,9 +96,10 @@ def main():
             print("converting to square...")
             start = time.time()
         (sq_roi_name_npa, sq_ctx_mat_npa) = \
-            cic_utils.conv_rect_ctx_mat_to_sq(row_roi_name_npa,
-                                              col_roi_name_npa,
-                                              ctx_mat_npa)
+            cic_utils.conv_rect_ctx_mat_to_sq(
+                row_roi_name_npa=row_roi_name_npa,
+                col_roi_name_npa=col_roi_name_npa,
+                ctx_mat_npa=ctx_mat_npa)
         roi_name_npa = sq_roi_name_npa
         if verbose:
             shape = sq_ctx_mat_npa.shape

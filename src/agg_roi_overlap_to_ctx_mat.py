@@ -6,7 +6,6 @@ from cic_dis import cic_overlap
 import cPickle as pickle
 import csv
 from cic_dis import cic_utils
-import sys
 from collections import defaultdict
 
 
@@ -50,7 +49,6 @@ def main():
     inj_site_lbl_set = frozenset()
 
     # for managing extents
-    curr_ara_level = -1
     # keep track of overlap for each injection site
     inj_site_overlap_dcts = defaultdict(lambda: defaultdict())
 
@@ -97,24 +95,20 @@ def main():
         if 'ctb' in tracer.lower() or 'fg' in tracer.lower():
             tracer_type = 'retro'
 
-        ara_level = int(row[agg_overlap_csv_header.index('ARA Level')])
         inj_site = row[agg_overlap_csv_header.index('Injection Site')]
         overlap = int(row[agg_overlap_csv_header.index('OVERLAP')])
         hemi_etc = row[agg_overlap_csv_header.
                        index('(HEMISPHERE:R:G:B)')]
         hemi = hemi_etc.split(':')[0].replace('(', '')
-        r_ch = int(hemi_etc.split(':')[1])
-        g_ch = int(hemi_etc.split(':')[2])
-        b_ch = int(hemi_etc.split(':')[3].replace(')', ''))
+        roi = row[agg_overlap_csv_header.index('REGION')]
         source_only = int(row[agg_overlap_csv_header.index('ATLAS ONLY')])
 
         # only make and add lbl to dct if hemi of interest or not checking hemi
         if (not check_hemi or hemi == hemisphere_of_interest) and \
            (not exclude_sections or
                 "{}:{}".format(case, section) not in exclude_sections):
-            # first make (ara_level:hemi:col:row) cell label
-            cell_lbl = "({}:{})".format(ara_level, hemi_etc.
-                                        replace('(', '').replace(')', ''))
+            # first make 'roi' cell label
+            cell_lbl = "{}".format(roi)
 
             # TODO change inj_site and other terminology to src vs. dest
             # build labels and dct lst
@@ -161,7 +155,7 @@ def main():
         print(pct_str, end='')
 
     # fill all rows with dct lst, need initial blank for header
-    cell_lbls = [''] + sorted(cell_lbl_set, key=cell_lbl_to_tup)
+    cell_lbls = [''] + sorted(cell_lbl_set)
     inj_site_lbls = sorted(inj_site_lbl_set)
     with open(output_ctx_mat_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -176,13 +170,11 @@ def main():
                         "overlap tup: {}".format(overlap_tup)
                     source_only = overlap_tup[0]
                     overlap = overlap_tup[1]
-                    if source_only + overlap > 0:
-                        cols.append(
-                            float(overlap)/float(source_only + overlap))
-                    else:
-                        print(
-                            "WARNING: cell {} has no source or overlap".format(
-                                cell_lbl))
+                    assert source_only + overlap > 0, \
+                        "WARNING: cell {} has no source or overlap".format(
+                                cell_lbl)
+                    cols.append(float(overlap)/float(source_only + overlap))
+
                 else:
                     cols.append('')
             csvwriter.writerow(cols)  # string technically a sequence
@@ -193,16 +185,6 @@ def main():
     output_pickle_path = cic_utils.pickle_path(output_ctx_mat_csv)
     pickle_dct = cic_utils.pickle_dct(args)
     pickle.dump(pickle_dct, open(output_pickle_path, "wb"))
-
-
-def cell_lbl_to_tup(lbl):
-    lst = lbl.replace('(', '').replace(')', '').split(':')
-    # if grid label
-    if len(lst) > 1:
-        return tuple([(x == 'r' or x == 'l') and x or int(x) for x in lst])
-    # else inj site label
-    else:
-        return tuple(lbl)
 
 
 if __name__ == '__main__':
