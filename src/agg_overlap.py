@@ -37,23 +37,33 @@ def main():
     # OPEN, READ INPUT CSV
     all_rows = []
     for overlap_csv_path in overlap_csv_path_lst:
-        (overlap_csv_meta_dct, overlap_header_lst, overlap_csv_rows) = \
-            cic_overlap.read_overlap_csv(overlap_csv_path)
-        # let's get crazy let's go nuts let's add new meta stuff
-        if 'Connection Lens Version' not in overlap_csv_meta_dct.keys():
-            overlap_csv_meta_dct['Connection Lens Version'] = '2.4.0'
-        if 'Seconday Injection Site' not in overlap_csv_meta_dct.keys():
+        (overlap_csv_meta_dct, overlap_header_lst, overlap_csv_dct_rows) = \
+            cic_overlap.read_overlap_csv_dct_rows(overlap_csv_path)
+
+        #  first check for meta keys that could be missing
+        if 'Connection Lens Version' not in overlap_csv_meta_dct.keys() + \
+           overlap_header_lst:
+            overlap_csv_meta_dct['Connection Lens Version'] = 'None'
+        if 'Seconday Injection Site' not in overlap_csv_meta_dct.keys() + \
+           overlap_header_lst:
             overlap_csv_meta_dct['Seconday Injection Site'] = 'None'
 
+        # if writing first row, then write header
         if len(all_rows) == 0:
             meta_dct_keys = sorted(overlap_csv_meta_dct.keys())
-            new_header = meta_dct_keys + overlap_header_lst
+            overlap_dct_keys = sorted(overlap_header_lst)
+            new_header = meta_dct_keys + overlap_dct_keys
             all_rows.append(new_header)
         front_cols = []
         for key in meta_dct_keys:
             front_cols.append(overlap_csv_meta_dct[key])
-        for row in overlap_csv_rows:
-            all_rows.append(front_cols + row)
+        # for each overlap_csv_dct row
+        #  place vals in same order on each row w/ blank if no value
+        for row in overlap_csv_dct_rows:
+            overlap_val_row = []
+            for key in overlap_dct_keys:
+                overlap_val_row.append(row.get(key, ''))
+            all_rows.append(front_cols + overlap_val_row)
 
     with open(output_agg_overlap_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)

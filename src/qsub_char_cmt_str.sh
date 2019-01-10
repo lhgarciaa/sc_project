@@ -15,4 +15,6 @@ if [ ! -f "$out_file" ]
 then
     cmd="python src/char_cmt_str.py -v -i $file -H" 
     $cmd > $out_file
+else
+    echo "$out_file exists, skipping char cmt run"
 fi

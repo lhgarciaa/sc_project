@@ -102,6 +102,9 @@ def main():
         ara_level = int(row[agg_overlap_csv_header.index('ARA Level')])
         hemi_col_row = row[agg_overlap_csv_header.
                            index('(HEMISPHERE:COLUMN:ROW)')]
+        assert len(hemi_col_row.split(':')) == 3, \
+            "ERROR: {}, row {}, {} wrong format" \
+            .format(input_agg_overlap_csv, row_idx + 1, hemi_col_row)
         hemi = hemi_col_row.split(':')[0].replace('(', '')
         col_num = int(hemi_col_row.split(':')[1])
         row_num = int(hemi_col_row.split(':')[2].replace(')', ''))
