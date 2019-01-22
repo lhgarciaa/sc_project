@@ -7,6 +7,7 @@ import os
 import numpy as np
 from cic_dis import cic_utils
 from cic_dis import cic_ms
+from cic_dis import cic_plot
 import sys
 
 csv.field_size_limit(sys.maxsize)  # let's rock
@@ -150,10 +151,10 @@ def main():
     print_dict[(4, 'max q')] = q_max
     print_dict[(5, 'mean q')] = np.mean(q_npa)
     print_dict[(6, 'std dev')] = np.std(q_npa)
-    print_dict[(7, 'unique com str')] = "{}/{}".format(
+    print_dict[(7, 'unique cmt str')] = "{}/{}".format(
         unique_cmt_str,
         num_runs)
-    print_dict[(8, 'com str mode count')] = "{}/{}".\
+    print_dict[(8, 'cmt str mode count')] = "{}/{}".\
         format(cmt_str_mode_count.tolist(), num_runs)
 
     # write to std out in csv file format
@@ -172,14 +173,16 @@ def main():
 
     # now write community structure values
     row = []
-    row.append('consensus com str:')
+    row.append('consensus cmt str:')
     # convert to lst_lst to save space in csv
     cons_cmt_str_lst_lst = cic_ms.fs_fs_to_lst_lst(cons_cmt_str)
     row.append(cons_cmt_str_lst_lst)
     csvwriter.writerow(row)
     row = []
-    row.append('qmax com str:')
-    row.append(qmax_cmt_str)
+    row.append('consensus cmt inj sites:')
+    cmt_inj_sites = cic_plot.cmt_inj_site_lst_from_cons_cmt_str(
+        cons_cmt_str_lst_lst)
+    row.append(cmt_inj_sites)
     csvwriter.writerow(row)
 
 
