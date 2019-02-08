@@ -446,9 +446,10 @@ def main():
         '.csv', '_lvls-{}.png'.format(levels))
 
     if focus_roi_lst is not None:
-        out_img_path = out_img_path.replace('.png',
-                                            '_fcs-{}.png'.format(
-                                                focus_roi_lst))
+        out_img_path = out_img_path.replace(
+            '.png',
+            '_fcs-{}.png'.format(
+                [roi_name[0] for roi_name in focus_roi_lst]))
     out_img_path = out_img_path.replace(",", "")
     out_img_path = out_img_path.replace("'", "")
     out_img_path = out_img_path.replace("[", "")
