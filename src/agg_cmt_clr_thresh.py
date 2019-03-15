@@ -122,14 +122,17 @@ def main():
                 overlap_dir_path=overlap_dir_path,
                 opairs_section=opairs_section,
                 ch=ch,
-                gcs=gcs)
+                gcs=gcs,
+                ant='ret' not in overlap_dir_path)  # TODO: less hacky here
             assert overlap_path is not None, "overlap {} not found".format(
                 overlap_path)
 
+            if gcs != 'roi':
+                gcs = int(gcs)
             cmt_clr_thresh_img = cic_outspector.agg_cmt_clr_thresh(
                 cmt_clr_tif_path=cmt_clr_tif_path,
                 agg_cmt_clr_tif_path=agg_cmt_clr_tif_path,
-                gcs=int(gcs),
+                gcs=gcs,
                 lvl=int(lvl),
                 hemi='r',
                 verbose=verbose)

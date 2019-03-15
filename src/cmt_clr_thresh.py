@@ -107,7 +107,8 @@ def main():
             overlap_dir_path=overlap_dir_path,
             opairs_section=opairs_section,
             ch=ch,
-            gcs=gcs)
+            gcs=gcs,
+            ant='ret' not in overlap_dir_path)  # TODO: less hacky
         assert overlap_path is not None, "overlap {} not found".format(
             overlap_path)
         if verbose:
@@ -121,12 +122,14 @@ def main():
             print("opened atlas {}".format(atlas_tif_path))
         # use communities defined in input_csv_path to color threshold in
         #  thresh_tif_path at regions overlapped in overlap_path
+        if gcs != 'roi':
+            gcs = int(gcs)
         cmt_clr_thresh_img = cic_outspector.cmt_clr_thresh(
             cons_cmt_csv_path=input_csv_path,
             thresh_tif_path=thresh_tif_path,
             overlap_path=overlap_path,
             atlas_tif_path=atlas_tif_path,
-            gcs=int(gcs),
+            gcs=gcs,
             lvl=int(lvl),
             hemi='r',
             inj_site_clr_map=inj_site_clr_map,
