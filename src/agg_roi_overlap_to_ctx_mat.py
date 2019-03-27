@@ -21,6 +21,9 @@ def main():
                         required=True)
     parser.add_argument('-hemi', '--hemisphere_of_interest',
                         help='exclusively include listed hemisphere in output')
+    parser.add_argument('-eir', '--exclusively_include_rois',
+                        help='A list of ROIS to include... exclusively',
+                        nargs='+')
     parser.add_argument('-es', '--exclude_sections',
                         help='List of case:section tuples to exclude from '
                         'ctx mat e.g. -es SW130212-02A:1_09 SW160212-02A:1_10',
@@ -38,6 +41,7 @@ def main():
     hemisphere_of_interest = args['hemisphere_of_interest']
     check_hemi = hemisphere_of_interest is not None
     exclude_sections = args['exclude_sections']
+    eir = args['exclusively_include_rois']
 
     assert os.path.isfile(input_agg_overlap_csv), "{} not found".\
         format(input_agg_overlap_csv)
@@ -58,6 +62,8 @@ def main():
         if exclude_sections is not None:
             print("Excluding {} sections: {}".format(len(exclude_sections),
                                                      exclude_sections))
+        if eir is not None:
+            print("Including only {} sections: {}".format(len(eir), eir))
 
     for row_idx, row in enumerate(agg_overlap_rows):
         # get constant vals, assume
