@@ -110,9 +110,13 @@ def main():
         source_only = int(row[agg_overlap_csv_header.index('ATLAS ONLY')])
 
         # only make and add lbl to dct if hemi of interest or not checking hemi
-        if (not check_hemi or hemi == hemisphere_of_interest) and \
-           (not exclude_sections or
-                "{}:{}".format(case, section) not in exclude_sections):
+        #  and not excluding sections
+        #  and not roi exclusive
+        if ((not check_hemi or hemi == hemisphere_of_interest) and
+            (not exclude_sections or
+             "{}:{}".format(case, section) not in exclude_sections) and
+            (not eir or
+             len([r for r in eir if roi.startswith(r)]) > 0)):
             # first make 'roi' cell label
             cell_lbl = "{}".format(roi)
 
