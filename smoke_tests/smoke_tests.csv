@@ -38,4 +38,4 @@ python src/run_louvain_row_col_ctx_mat.py -wh -i test_data/test_agg_overlap_to_c
 # test run grid louvain 50x 16 SLOTS
 python src/run_louvain_row_col_ctx_mat.py -wh -i test_data/test_agg_overlap_to_ctx_mat.csv -g 0.01 -r 50 -ns 16 -o smoke_tests/test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv, smoke_tests/test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv, smoke_tests/exp_test_agg_overlap_to_ctx_mat_gamma-0.01_runs-0050.csv
 # test CHARACTERIZE COMMUNITY STRUCTURE
-python src/char_cmt_str.py -H -i test_data/simple_dir_row_col_mat_gamma-1.00_runs-0010.csv > smoke_tests/char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv, smoke_tests/char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv, smoke_tests/exp_char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv
+python src/char_cmt_str.py -H -i test_data/simple_dir_row_col_mat_gamma-1.00_runs-0010.csv -isl A B C D E F G H I > smoke_tests/char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv, smoke_tests/char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv, smoke_tests/exp_char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv

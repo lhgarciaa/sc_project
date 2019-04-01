@@ -22,6 +22,10 @@ def main():
     parser.add_argument('-H', '--header',
                         help='Include header info, typically used first write',
                         action='store_true')
+    parser.add_argument('-isl', '--inj_site_lst',
+                        help='Injection sites present in matrix',
+                        required=True,
+                        nargs="+")
     parser.add_argument('-v', '--verbose',
                         help='Print relevant but optional output',
                         action='store_true')
@@ -33,6 +37,7 @@ def main():
         "can't find input csv file {}".format(input_csv_path)
     display_header = args['header']
     verbose = args['verbose']
+    inj_site_lst = args['inj_site_lst']
 
     # parse input csv into louvain run arr dict, all values are strings
     # [ { 'run' : run
@@ -181,6 +186,7 @@ def main():
     row = []
     row.append('consensus cmt inj sites:')
     cmt_inj_sites = cic_plot.cmt_inj_site_lst_from_cons_cmt_str(
+        inj_site_lst,
         cons_cmt_str_lst_lst)
     row.append(cmt_inj_sites)
     csvwriter.writerow(row)
