@@ -7,6 +7,7 @@ import cPickle as pickle
 import csv
 from cic_dis import cic_utils
 from collections import defaultdict
+import re
 
 
 def main():
@@ -109,14 +110,20 @@ def main():
         roi = row[agg_overlap_csv_header.index('REGION')]
         source_only = int(row[agg_overlap_csv_header.index('ATLAS ONLY')])
 
-        # only make and add lbl to dct if hemi of interest or not checking hemi
-        #  and not excluding sections
-        #  and not roi exclusive
-        if ((not check_hemi or hemi == hemisphere_of_interest) and
+        # only make and add lbl to dct if overlap present and
+        #  hemi of interest or not checking hemi and
+        #  not excluding sections or section not excluded
+        #  not roi exclusive or roi included
+        if (int(overlap) > 0 and
+            (not check_hemi or hemi == hemisphere_of_interest) and
             (not exclude_sections or
              "{}:{}".format(case, section) not in exclude_sections) and
             (not eir or
-             len([r for r in eir if roi.startswith(r)]) > 0)):
+             len([r for r in eir if
+                  r == roi or
+                  re.search('^' + r + '[a-z0-9_]', roi) is not None]) > 0)):
+            # ^^^ check for exact match e.g. VISal_2/3 or == VISal_2/3
+            # or that e.g. MO matches MOp but not MOB ^^^
             # first make 'roi' cell label
             cell_lbl = "{}".format(roi)
 
