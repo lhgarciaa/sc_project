@@ -22,6 +22,11 @@ def main():
                         required=True)
     parser.add_argument('-hemi', '--hemisphere_of_interest',
                         help='exclusively include listed hemisphere in output')
+    parser.add_argument('-mtv', '--minimum_threshold_value',
+                        help='Only write cols with values over particular min',
+                        required=False,
+                        type=float,
+                        default=0.0)
     parser.add_argument('-eir', '--exclusively_include_rois',
                         help='A list of ROIS to include... exclusively',
                         nargs='+')
@@ -43,6 +48,7 @@ def main():
     check_hemi = hemisphere_of_interest is not None
     exclude_sections = args['exclude_sections']
     eir = args['exclusively_include_rois']
+    mtv = args['minimum_threshold_value']
 
     assert os.path.isfile(input_agg_overlap_csv), "{} not found".\
         format(input_agg_overlap_csv)
@@ -110,12 +116,11 @@ def main():
         roi = row[agg_overlap_csv_header.index('REGION')]
         source_only = int(row[agg_overlap_csv_header.index('ATLAS ONLY')])
 
-        # only make and add lbl to dct if overlap present and
+        # only make and add lbl to dct if mtv overlap present and
         #  hemi of interest or not checking hemi and
         #  not excluding sections or section not excluded
         #  not roi exclusive or roi included
-        if (int(overlap) > 0 and
-            (not check_hemi or hemi == hemisphere_of_interest) and
+        if ((not check_hemi or hemi == hemisphere_of_interest) and
             (not exclude_sections or
              "{}:{}".format(case, section) not in exclude_sections) and
             (not eir or
@@ -171,9 +176,24 @@ def main():
                   format((float(row_idx)/float(len(agg_overlap_rows)))*100.0)
         print(pct_str, end='')
 
+    # define max overlap for each ROI
+    max_roi_olp_dct = defaultdict(float)
+    for inj_site in inj_site_overlap_dcts:
+        for roi in inj_site_overlap_dcts[inj_site]:
+            overlap_tup = inj_site_overlap_dcts[inj_site][roi]
+            source_only = overlap_tup[0]
+            overlap = overlap_tup[1]
+            max_roi_olp_dct[roi] = max(
+                max_roi_olp_dct[roi],
+                mat_olp_calc(source_only=source_only, overlap=overlap))
+
+    # only get labels with > max intensity, in ant case these are output rois
+    cell_lbls = [''] + sorted([lbl for lbl in cell_lbl_set if
+                               max_roi_olp_dct[lbl] > mtv])
+
     # fill all rows with dct lst, need initial blank for header
-    cell_lbls = [''] + sorted(cell_lbl_set)
     inj_site_lbls = sorted(inj_site_lbl_set)
+
     with open(output_ctx_mat_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(cell_lbls)
@@ -181,7 +201,7 @@ def main():
             cols = [inj_site_lbl]
             for cell_lbl in cell_lbls[1:len(cell_lbls)]:
                 # do get to make sure cell_lbl exists for given injection site
-                overlap_tup = inj_site_overlap_dcts[inj_site_lbl].get(cell_lbl)
+                overlap_tup = inj_site_overlap_dcts[inj_site_lbl][cell_lbl]
                 if overlap_tup is not None and len(overlap_tup) > 0:
                     assert len(overlap_tup) == 2, \
                         "overlap tup: {}".format(overlap_tup)
@@ -190,8 +210,8 @@ def main():
                     assert source_only + overlap > 0, \
                         "WARNING: cell {} has no source or overlap".format(
                                 cell_lbl)
-                    cols.append(float(overlap)/float(source_only + overlap))
-
+                    cols.append(mat_olp_calc(source_only=source_only,
+                                             overlap=overlap))
                 else:
                     cols.append('')
             csvwriter.writerow(cols)  # string technically a sequence
@@ -202,6 +222,10 @@ def main():
     output_pickle_path = cic_utils.pickle_path(output_ctx_mat_csv)
     pickle_dct = cic_utils.pickle_dct(args)
     pickle.dump(pickle_dct, open(output_pickle_path, "wb"))
+
+
+def mat_olp_calc(source_only, overlap):
+    return float(overlap)/float(source_only + overlap)
 
 
 if __name__ == '__main__':
