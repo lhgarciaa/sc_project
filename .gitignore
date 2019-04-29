@@ -6,3 +6,4 @@
 in_data
 tmp
 old_*
+smoke_tests/.*.p
