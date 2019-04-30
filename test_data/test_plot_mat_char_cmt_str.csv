@@ -1,0 +1,14 @@
+Reading Louvain output CSV
+done in 0.0309960842133s
+Converting format of read louvain run arr dict
+done in 0.00250601768494s
+calculating std_dev_w_alpha_beta...
+done in 0.100224018097s: 12.894585518
+calculating mean_var_z_alpha_beta...
+done in 0.0704050064087s: (82.864544440772889, 1.0552836192222541)
+calculating cons_cmt_str...
+done in 3.01892805099s
+num runs,gamma,mean part sim,var part sim,len con cmt str,max num com,mean num com,std dev num com,max q,mean q,std dev,unique cmt str,cmt str mode count
+100,1.0,82.864544440772889,1.0552836192222541,5,5,4.9500000000000002,0.21794494717703367,0.35294752361578491,0.34267585903113429,0.0023564814687598323,2/100,95/100
+consensus cmt str:,"[['ACAd_1', 'ACAd_2/3', 'ACAd_6a', 'ACAd_6b', 'ACAv_1', 'ACAv_2/3', 'ACAv_6a', 'ACAv_6b', 'AIv_5', 'AIv_6a', 'AUDd_6a', 'AUDd_6b', 'AUDp_6b', 'AUDv_6a', 'AUDv_6b', 'BLA_ac', 'BLA_am', 'MOs_2/3', 'MOs_6b', 'ORBl_5', 'ORBl_6a', 'ORBm_2/3', 'ORBm_5', 'ORBm_6a', 'ORBvl_5', 'PL_1', 'PL_2', 'PL_2/3', 'PL_6a', 'PL_6b', 'SSp-un_6a', 'VISal_6a', 'VISal_6b', 'VISl_6a'], ['ACAd_5', 'AId_5', 'AId_6a', 'AIp_5', 'BLA_al', 'BLA_p', 'GU_4', 'GU_5', 'GU_6a', 'GU_6b', 'ILA_5', 'ILA_6a', 'ILA_6b', 'MOs_5', 'MOs_6a', 'ORBvl_6a', 'PL_5', 'SSp_6a', 'SSp_6b', 'SSp_m_6b', 'SSp_n_6b', 'VISC_6a'], ['AId_1', 'AId_2/3', 'AIp_1', 'AIp_2/3', 'AIv_2/3', 'BLA_v', 'GU_1', 'GU_2/3', 'MOp_1', 'MOs_1', 'ORBl_2/3', 'ORBvl_1', 'PERI_1', 'PERI_2/3', 'PERI_5', 'VISC_1', 'VISC_2/3', 'VISC_6b'], ['AIp_6a', 'AIv_1', 'BMA_p', 'ILA_2', 'ILA_2/3', 'ORBm_1', 'ORBm_2', 'PERI_6a', 'PERI_6b'], ['AUDpo_6b', 'ECT_1', 'ECT_2/3', 'ECT_5', 'ECT_6a', 'ECT_6b', 'ILA_1', 'LA', 'TEa_1', 'TEa_2/3', 'TEa_4', 'TEa_5', 'TEa_6a', 'TEa_6b']]"
+consensus cmt inj sites:,"[['BLA_ac', 'BLA_am'], ['BLA_al', 'BLA_p'], ['BLA_v'], ['BMA_p'], ['LA']]"
