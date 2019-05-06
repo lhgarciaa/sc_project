@@ -1,7 +1,7 @@
 (dp1
 S'case_ch_tups'
 p2
-S'SW120228-02B:3 '
+S'SW120228-02B:2 '
 p3
 sS'verbose'
 p4

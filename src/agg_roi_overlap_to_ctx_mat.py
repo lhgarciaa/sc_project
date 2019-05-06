@@ -49,6 +49,11 @@ def main():
     exclude_sections = args['exclude_sections']
     eir = args['exclusively_include_rois']
     mtv = args['minimum_threshold_value']
+    tracer_mode = \
+        "retrograde" if 'ret' in input_agg_overlap_csv else "anterograde"
+
+    if verbose:
+        print("Using tracer mode {}".format(tracer_mode))
 
     assert os.path.isfile(input_agg_overlap_csv), "{} not found".\
         format(input_agg_overlap_csv)
@@ -56,8 +61,8 @@ def main():
     (agg_overlap_csv_header, agg_overlap_rows) = \
         cic_overlap.read_agg_overlap_csv(input_csv_path=input_agg_overlap_csv)
 
-    cell_lbl_set = frozenset()
-    inj_site_lbl_set = frozenset()
+    dst_lbl_set = frozenset()
+    src_lbl_set = frozenset()
 
     # for managing extents
     # keep track of overlap for each injection site
@@ -90,7 +95,6 @@ def main():
         assert 'Grid Size' not in agg_overlap_csv_header
         overlap_format = row[agg_overlap_csv_header.index(
             'Overlap Format')]
-        tracer = row[agg_overlap_csv_header.index('Tracer')]
         # get section and case in event exclude_sections list provided
         section = row[agg_overlap_csv_header.index('Slide Number')]
         case = row[agg_overlap_csv_header.index('Case Name')]
@@ -102,11 +106,6 @@ def main():
         assert atlas_version == ATLAS_VERSION, "{} does not equal {}".format(
             atlas_version, ATLAS_VERSION)
         assert overlap_format == OVERLAP_FORMAT
-
-        # set antero or retro mode based on tracer
-        tracer_type = 'antero'  # assume antero
-        if 'ctb' in tracer.lower() or 'fg' in tracer.lower():
-            tracer_type = 'retro'
 
         inj_site = row[agg_overlap_csv_header.index('Injection Site')]
         overlap = int(row[agg_overlap_csv_header.index('OVERLAP')])
@@ -130,41 +129,44 @@ def main():
             # ^^^ check for exact match e.g. VISal_2/3 or == VISal_2/3
             # or that e.g. MO matches MOp but not MOB ^^^
             # first make 'roi' cell label
-            cell_lbl = "{}".format(roi)
+            roi_lbl = "{}".format(roi)
 
             # TODO change inj_site and other terminology to src vs. dest
             # build labels and dct lst
-            # if antero
-            if tracer_type == 'antero':
+            # if anterograde
+            if tracer_mode == 'anterograde':
                 # cell labels from all (HEMISPHERE:COLUMN:ROWS) values
-                cell_lbl_set = cell_lbl_set.union(frozenset({cell_lbl}))
+                dst_lbl_set = dst_lbl_set.union(frozenset({roi_lbl}))
                 #   injection site labels from all Injection Site values
-                inj_site_lbl_set = inj_site_lbl_set.union(
+                src_lbl_set = src_lbl_set.union(
                     frozenset({inj_site}))
-            elif tracer_type == 'retro':
+            elif tracer_mode == 'retrograde':
                 # cell labels from all inj_site values
-                cell_lbl_set = cell_lbl_set.union(frozenset({inj_site}))
+                dst_lbl_set = dst_lbl_set.union(frozenset({inj_site}))
                 #   injection site labels from all Injection Site values
-                inj_site_lbl_set = inj_site_lbl_set.union(
-                    frozenset({cell_lbl}))
+                src_lbl_set = src_lbl_set.union(
+                    frozenset({roi_lbl}))
             else:
-                assert 0, 'Tracer type should either be antro or retro'
+                assert 0, 'Tracer type should either be antro or retrograde'
 
             # populate dcts
-            #  { 'Injection Site' : '...' {cell_lbl1 : (source_only, overlap),
-            #                              cell_lbl2 : ...} }
-            if tracer_type == 'antero':
+            #  antero
+            #  { 'Injection Site' : '...' {roi_lbl1 : (source_only, overlap),
+            #                              roi_lbl2 : ...} }
+            if tracer_mode == 'anterograde':
                 inj_site_overlap_dct = \
                                        inj_site_overlap_dcts[inj_site]
-                overlap_tup = inj_site_overlap_dct.get(cell_lbl, (0, 0))
+                overlap_tup = inj_site_overlap_dct.get(roi_lbl, (0, 0))
                 overlap_tup = tuple(map(lambda x, y: x + y, overlap_tup,
                                         (source_only, overlap)))
 
-                inj_site_overlap_dct[cell_lbl] = overlap_tup
-
+                inj_site_overlap_dct[roi_lbl] = overlap_tup
+            #  retro
+            #  { 'Roi label' : '...' {inj_site1 : (source_only, overlap),
+            #                         inj_site2 : ...} }
             else:
                 inj_site_overlap_dct = \
-                                       inj_site_overlap_dcts[cell_lbl]
+                                       inj_site_overlap_dcts[roi_lbl]
                 overlap_tup = inj_site_overlap_dct.get(inj_site, (0, 0))
                 overlap_tup = tuple(
                     map(lambda x, y: x + y, overlap_tup,
@@ -178,30 +180,60 @@ def main():
 
     # define max overlap for each ROI
     max_roi_olp_dct = defaultdict(float)
-    for inj_site in inj_site_overlap_dcts:
-        for roi in inj_site_overlap_dcts[inj_site]:
-            overlap_tup = inj_site_overlap_dcts[inj_site][roi]
-            source_only = overlap_tup[0]
-            overlap = overlap_tup[1]
-            max_roi_olp_dct[roi] = max(
-                max_roi_olp_dct[roi],
-                mat_olp_calc(source_only=source_only, overlap=overlap))
+
+    if tracer_mode == 'anterograde':
+
+        for inj_site in inj_site_overlap_dcts:
+            for roi in inj_site_overlap_dcts[inj_site]:
+                overlap_tup = inj_site_overlap_dcts[inj_site][roi]
+                source_only = overlap_tup[0]
+                overlap = overlap_tup[1]
+                max_roi_olp_dct[roi] = max(
+                    max_roi_olp_dct[roi],
+                    mat_olp_calc(source_only=source_only, overlap=overlap))
+
+    else:  # retrograde
+        for roi in inj_site_overlap_dcts:
+            for inj_site in inj_site_overlap_dcts[roi]:
+                overlap_tup = inj_site_overlap_dcts[roi][inj_site]
+                source_only = overlap_tup[0]
+                overlap = overlap_tup[1]
+                max_roi_olp_dct[roi] = max(
+                    max_roi_olp_dct[roi],
+                    mat_olp_calc(source_only=source_only, overlap=overlap))
 
     # only get labels with > max intensity, in ant case these are output rois
-    cell_lbls = [''] + sorted([lbl for lbl in cell_lbl_set if
-                               max_roi_olp_dct[lbl] > mtv])
+
+    if tracer_mode == 'anterograde':
+        src_lbls = sorted(src_lbl_set)
+        dst_lbls = [''] + sorted([lbl for lbl in dst_lbl_set if
+                                  max_roi_olp_dct[lbl] > mtv])
+
+        if verbose:
+            print("Filtered\n{} with mtv {}...".format(
+                sorted(dst_lbl_set), mtv))
+            print("result\n{}".format(dst_lbls[1:len(dst_lbls)]))
+
+    else:  # retrograde
+        src_lbls = sorted([lbl for lbl in src_lbl_set if
+                           max_roi_olp_dct[lbl] > mtv])
+        dst_lbls = [''] + sorted(dst_lbl_set)
+
+        if verbose:
+            print("Filtered\n{} with mtv {}...".format(
+                sorted(src_lbl_set), mtv))
+            print("result\n{}".format(src_lbls[1:len(src_lbls)]))
 
     # fill all rows with dct lst, need initial blank for header
-    inj_site_lbls = sorted(inj_site_lbl_set)
-
     with open(output_ctx_mat_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(cell_lbls)
-        for inj_site_lbl in inj_site_lbls:
-            cols = [inj_site_lbl]
-            for cell_lbl in cell_lbls[1:len(cell_lbls)]:
-                # do get to make sure cell_lbl exists for given injection site
-                overlap_tup = inj_site_overlap_dcts[inj_site_lbl][cell_lbl]
+        csvwriter.writerow(dst_lbls)
+        for src_lbl in src_lbls:
+            cols = [src_lbl]
+            for dst_lbl in dst_lbls[1:len(dst_lbls)]:
+                # do get to make sure dst_lbl exists for given injection site
+                inj_site_overlap_dct = inj_site_overlap_dcts[src_lbl]
+                overlap_tup = inj_site_overlap_dct[dst_lbl]
                 if overlap_tup is not None and len(overlap_tup) > 0:
                     assert len(overlap_tup) == 2, \
                         "overlap tup: {}".format(overlap_tup)
@@ -209,7 +241,7 @@ def main():
                     overlap = overlap_tup[1]
                     assert source_only + overlap > 0, \
                         "WARNING: cell {} has no source or overlap".format(
-                                cell_lbl)
+                                dst_lbl)
                     cols.append(mat_olp_calc(source_only=source_only,
                                              overlap=overlap))
                 else:

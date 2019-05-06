@@ -54,7 +54,7 @@ class RunSmokeTests(unittest.TestCase):
             # execute the command
             # note, security risk with shell=True
             start = time.time()
-            print("CALLING {}...".format(cmd_dct['COMMAND']))
+            print("CALLING\n{}".format(cmd_dct['COMMAND']))
             subprocess.call(cmd_dct['COMMAND'], shell=True)
             print("completed in {:0.2f}s\n".
                   format(time.time() - start))

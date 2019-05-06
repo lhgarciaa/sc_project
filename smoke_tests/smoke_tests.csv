@@ -29,6 +29,8 @@ src/agg_roi_overlap_to_ctx_mat.py -i test_data/test_agg_roi_overlap_csv.csv -o s
 src/agg_roi_overlap_to_ctx_mat.py -eir MO PL -i test_data/test_agg_roi_overlap_csv.csv -o smoke_tests/eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv -hemi r -v, smoke_tests/eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv, smoke_tests/exp_eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv
 # test convert aggregated ROI overlap to CTX mat with MO PL eir, and mtv 0.004
 src/agg_roi_overlap_to_ctx_mat.py -eir MO PL -mtv 0.004  -i test_data/test_agg_roi_overlap_csv.csv -o smoke_tests/mtv_eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv -hemi r -v, smoke_tests/mtv_eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv, smoke_tests/exp_mtv_eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv
+# test ret convert agg ROI overlap to CTX mat with ACA eir, and mtv 0.000
+src/agg_roi_overlap_to_ctx_mat.py -eir ACA -mtv 0.000  -i test_data/test_ret_agg_roi_overlap_csv.csv -o smoke_tests/ret_mtv_eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv -hemi r -v, smoke_tests/ret_mtv_eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv, smoke_tests/exp_ret_mtv_eir_roi_right_hemi_agg_overlap_to_ctx_mat.csv
 # test convert aggregated grid overlap to ctx mat WITH CTB
 python src/agg_grid_overlap_to_ctx_mat.py -i test_data/test_agg_overlap_w_ctb.csv -o smoke_tests/agg_overlap_to_ctx_mat_w_ctb.csv, smoke_tests/agg_overlap_to_ctx_mat_w_ctb.csv, smoke_tests/exp_agg_overlap_to_ctx_mat_w_ctb.csv
 # test convert aggregated grid overlap to CTX MAT W/ ONLY RIGHT HEMISPHERE
@@ -42,4 +44,4 @@ python src/run_louvain_row_col_ctx_mat.py -wh -i test_data/test_agg_overlap_to_c
 # test CHARACTERIZE COMMUNITY STRUCTURE
 python src/char_cmt_str.py -H -i test_data/simple_dir_row_col_mat_gamma-1.00_runs-0010.csv -isl A B C D E F G H I > smoke_tests/char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv, smoke_tests/char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv, smoke_tests/exp_char_cmt_str_simple_dir_row_col_mat_gamma-1.00_runs-0010.csv
 # test plot modularized matrix
-src/plot_mat.py -m test_data/test_plot_mat_norm_ctx_mat.csv -c test_data/test_plot_mat_char_cmt_str.csv -v -fs 6 -pt mod_mat -ps -mlw 0.5, test_data/test_plot_mat_norm_ctx_mat_gamma-1.0_100-runs_mod_reorder.png, smoke_tests/exp_test_plot_mat_norm_ctx_mat_gamma-1.0_100-runs_mod_reorder.png
+src/plot_mat.py -m test_data/test_plot_mat_norm_ctx_mat.csv -c test_data/test_plot_mat_char_cmt_str.csv -v -fs 6 -pt mod_mat -ps -mlw 0.5 -fmt png, test_data/test_plot_mat_norm_ctx_mat_gamma-1.0_100-runs_mod_reorder.png, smoke_tests/exp_test_plot_mat_norm_ctx_mat_gamma-1.0_100-runs_mod_reorder.png
