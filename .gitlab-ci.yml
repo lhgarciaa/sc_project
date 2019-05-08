@@ -4,6 +4,7 @@ stages:
 test:
   stage: test
   script:
+    - whoami
     - pwd
     - "virtualenv testvenv"
     - ". testvenv/bin/activate"
