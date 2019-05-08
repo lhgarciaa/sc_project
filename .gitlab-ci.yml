@@ -11,4 +11,4 @@ test:
     - "pip install -r requirements.txt"
     - "bash run_tests.sh"
   tags:
-    - local
+    - bla_local
