@@ -4,11 +4,11 @@ stages:
 test:
   stage: test
   script:
-    - virtualenv testvenv
-    - . testvenv/bin/activate
-    - python -m pip install --upgrade pip
-    - pip install -r requirements.txt
-    - bash run_tests.sh    
+    - pwd
+    - "virtualenv testvenv"
+    - ". testvenv/bin/activate"
+    - "python -m pip install --upgrade pip"
+    - "pip install -r requirements.txt"
+    - "bash run_tests.sh"
   tags:
     - local
-    
