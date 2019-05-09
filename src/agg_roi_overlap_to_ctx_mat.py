@@ -242,8 +242,11 @@ def main():
                     assert source_only + overlap > 0, \
                         "WARNING: cell {} has no source or overlap".format(
                                 dst_lbl)
-                    cols.append(mat_olp_calc(source_only=source_only,
-                                             overlap=overlap))
+                    if tracer_mode == 'anterograde':
+                        cols.append(mat_olp_calc(source_only=source_only,
+                                                 overlap=overlap))
+                    else:  # retrograde
+                        cols.append(overlap)  # append only the cell count
                 else:
                     cols.append('')
             csvwriter.writerow(cols)  # string technically a sequence
