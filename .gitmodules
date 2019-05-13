@@ -1,0 +1,4 @@
+[submodule "src/cic_dis"]
+	path = src/cic_dis
+	url = git@git.ini.usc.edu:ibowman/cic_dis.git
+	branch = master
