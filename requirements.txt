@@ -2,7 +2,7 @@ flake8==3.3.0
 bctpy==0.5.0
 numpy==1.13.0
 psutil
-opencv-python==3.3.0
+opencv-python==3.3.0.10
 plotly
 pydot
 matplotlib==2.2.4
