@@ -200,7 +200,7 @@ def main():
                 overlap = overlap_tup[1]
                 max_roi_olp_dct[roi] = max(
                     max_roi_olp_dct[roi],
-                    mat_olp_calc(source_only=source_only, overlap=overlap))
+                    overlap)
 
     # only get labels with > max intensity, in ant case these are output rois
 
