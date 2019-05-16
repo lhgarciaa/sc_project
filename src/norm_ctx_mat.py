@@ -24,7 +24,7 @@ def main():
 
     input_csv_path = args['input_ctx_mat_csv']
     output_ctx_mat_csv = args['output_ctx_mat_csv']
-    MODE = 'anterograde'
+    tracer_mode = 'anterograde'
     verbose = args['verbose']
 
     # check input path is actually valid
@@ -40,9 +40,9 @@ def main():
     # use a simple method to determine if anterograde or retrograde
     #  more importantly, operate on rows or columns accordingly
     if 'ret' in input_csv_path:
-        MODE = 'retrograde'
+        tracer_mode = 'retrograde'
 
-    if MODE == 'anterograde':
+    if tracer_mode == 'anterograde':
         # get max row
         max_row_idx = -1
         max_total = -1
@@ -56,7 +56,7 @@ def main():
             print("Found row {} as max total sum with {}".format(
                 row_roi_name_npa[max_row_idx], max_total))
 
-    if MODE == 'retrograde':
+    if tracer_mode == 'retrograde':
         # get max col
         max_col_idx = -1
         max_total = -1
@@ -73,7 +73,7 @@ def main():
     with open(output_ctx_mat_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
 
-        if MODE == 'anterograde':
+        if tracer_mode == 'anterograde':
             header_row = [''] + list(col_roi_name_npa)
             csvwriter.writerow(header_row)
             for idx in xrange(len(row_roi_name_npa)):
@@ -98,7 +98,7 @@ def main():
                     csvwriter.writerow([row_roi_name_npa[idx]] +
                                        list(ctx_mat_npa[idx]))
 
-        elif MODE == 'retrograde':
+        elif tracer_mode == 'retrograde':
             header_row = [''] + list(col_roi_name_npa)
             csvwriter.writerow(header_row)
             norm_cols = []
@@ -116,7 +116,7 @@ def main():
                         ctx_mat_npa=ctx_mat_npa,
                         idx=idx,
                         fact=fact,
-                        max_prod=1.0)
+                        max_prod=None)  # pass None to prevent max clipping
                 else:
                     norm_col = ctx_mat_npa[:, idx]
 
@@ -129,7 +129,7 @@ def main():
                 csvwriter.writerow([row_roi_name_npa[idx]] + list(norm_row))
 
         else:
-            assert 0, "invalid mode {}".format(MODE)
+            assert 0, "invalid mode {}".format(tracer_mode)
 
     if verbose:
         print("wrote to {}".format(output_ctx_mat_csv))
