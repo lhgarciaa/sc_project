@@ -109,9 +109,18 @@ def main():
 
         inj_site = row[agg_overlap_csv_header.index('Injection Site')]
         overlap = int(row[agg_overlap_csv_header.index('OVERLAP')])
-        hemi_etc = row[agg_overlap_csv_header.
-                       index('(HEMISPHERE:R:G:B)')]
-        hemi = hemi_etc.split(':')[0].replace('(', '')
+
+        # Need to support overlap data without hemisphere included
+        #  if is included then set hemi normally
+        if '(HEMISPHERE:R:G:B)' in agg_overlap_csv_header:
+            hemi_etc = row[agg_overlap_csv_header.index('(HEMISPHERE:R:G:B)')]
+            hemi = hemi_etc.split(':')[0].replace('(', '')
+        #  else if no hemi included then set hemi to None
+        elif '(R:G:B)' in agg_overlap_csv_header:
+            hemi = None
+        else:
+            assert None, "invalid overlap format"
+
         roi = row[agg_overlap_csv_header.index('REGION')]
         source_only = int(row[agg_overlap_csv_header.index('ATLAS ONLY')])
 
