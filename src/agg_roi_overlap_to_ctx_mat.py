@@ -116,7 +116,7 @@ def main():
             hemi_etc = row[agg_overlap_csv_header.index('(HEMISPHERE:R:G:B)')]
             hemi = hemi_etc.split(':')[0].replace('(', '')
         #  else if no hemi included then set hemi to None
-        elif '(R:G:B)' in agg_overlap_csv_header:
+        elif 'REGION RGB' in agg_overlap_csv_header:
             hemi = None
         else:
             assert None, "invalid overlap format"
