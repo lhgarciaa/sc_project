@@ -19,6 +19,10 @@ def main():
                         help='Output aggreated overlap csv',
                         required=True)
 
+    parser.add_argument('-r', '--replacement_injection_site',
+                        help='Replacement injection site',
+                        required=False)
+
     parser.add_argument('-v', '--verbose',
                         help='Print extra information about aggregation',
                         action='store_true')
@@ -30,6 +34,9 @@ def main():
     # sort glob for consistency of test results
     overlap_csv_path_lst = sorted(glob.glob(input_overlap_csv_wildcard))
     output_agg_overlap_csv = args['output_agg_overlap_csv']
+    # get replacement injection site if it's there
+    ris = args['replacement_injection_site']
+    replace_inj_site = ris is not None
 
     assert len(overlap_csv_path_lst) > 0,\
         "no input csv files matching {}".format(input_overlap_csv_wildcard)
@@ -47,6 +54,9 @@ def main():
         if 'Seconday Injection Site' not in overlap_csv_meta_dct.keys() + \
            overlap_header_lst:
             overlap_csv_meta_dct['Seconday Injection Site'] = 'None'
+        # replace injection site with replacement value specified on cl
+        if replace_inj_site:
+            overlap_csv_meta_dct['Injection Site'] = ris
 
         # if writing first row, then write header
         if len(all_rows) == 0:

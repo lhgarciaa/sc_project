@@ -19,6 +19,8 @@ src/agg_cmt_clr_thresh.py -v -gcs 350 -lvl 100 -cb test_data/agg_cmt_clr -cct SW
 python src/cmt_clr_thresh.py -v -i test_data/cmt_clr_thresh/cons_cmt_str_agg_cons_cmt_str_m-0.67-1.06.csv -isc BLA_am::228:26:28 BLA_al::255:127:0 BLA_ac::255:255:51 -cd test_data/cmt_clr_thresh/ret/SW120228-02B/ -ch 5 -gcs 350 -lvl 100, test_data/cmt_clr_thresh/ret/SW120228-02B/threshold/channels/5/SW120228-02B_3_05_ch5-degenerate_roi_filter_cmt_clr.tif test_data/cmt_clr_thresh/ret/SW120228-02B/threshold/channels/5/SW120228-02B_3_05_ch5-degenerate_roi_filter_cmt_clr_visual.tif, smoke_tests/exp_SW120228-02B_3_05_ch5-degenerate_roi_filter_cmt_clr.tif smoke_tests/exp_SW120228-02B_3_05_ch5-degenerate_roi_filter_cmt_clr_visual.tif
 # test aggregating CHANNEL 2 overlap
 python src/agg_overlap.py -i "test_data/agg_overlap/SW010101-01A/overlap/2/SW010101-01A_1_0*.csv" -o smoke_tests/SW010101-01A_ch2_grid-035.csv, smoke_tests/SW010101-01A_ch2_grid-035.csv, smoke_tests/exp_SW010101-01A_ch2_grid-035.csv
+# test aggregating CHANNEL 2 overlap with rename of injection site
+python src/agg_overlap.py  -r MOB_mi -i "test_data/agg_overlap/SW010101-01A/overlap/2/SW010101-01A_1_0*.csv" -o smoke_tests/r_SW010101-01A_ch2_grid-035.csv, smoke_tests/r_SW010101-01A_ch2_grid-035.csv, smoke_tests/exp_r_SW010101-01A_ch2_grid-035.csv
 # test aggregating CASES overlap
 python src/agg_overlap.py -v -i "test_data/agg_overlap/SW0*grid-035.csv" -o smoke_tests/agg_grid-035.csv, smoke_tests/agg_grid-035.csv, smoke_tests/exp_agg_grid-035.csv
 # test convert aggegated GRID OVERLAP TO CTX MAT
