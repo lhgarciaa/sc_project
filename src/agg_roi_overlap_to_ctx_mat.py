@@ -239,10 +239,18 @@ def main():
         csvwriter.writerow(dst_lbls)
         for src_lbl in src_lbls:
             cols = [src_lbl]
+            inj_site_overlap_dct = inj_site_overlap_dcts[src_lbl]
+            if verbose:
+                print("read inj site ovlp dct for {}, length {}".
+                      format(src_lbl, len(inj_site_overlap_dct)))
             for dst_lbl in dst_lbls[1:len(dst_lbls)]:
+                overlap_tup = inj_site_overlap_dct.get(dst_lbl, None)
                 # do get to make sure dst_lbl exists for given injection site
-                inj_site_overlap_dct = inj_site_overlap_dcts[src_lbl]
-                overlap_tup = inj_site_overlap_dct[dst_lbl]
+                if verbose:
+                    if overlap_tup is None:
+                        print("no overlap tup for {}, {}".
+                              format(src_lbl, dst_lbl))
+
                 if overlap_tup is not None and len(overlap_tup) > 0:
                     assert len(overlap_tup) == 2, \
                         "overlap tup: {}".format(overlap_tup)
