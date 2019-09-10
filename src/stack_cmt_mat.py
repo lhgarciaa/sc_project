@@ -130,7 +130,7 @@ def main():
     if verbose:
         print("Opening char com str csv {}...".format(char_com_str_csv))
         start = time.time()
-    cons_cmt_str = cic_plot.cons_cmt_str(cons_cmt_csv_path=char_com_str_csv)
+    cons_cmt_str = cic_plot.cons_cmt_str(char_cmt_csv_path=char_com_str_csv)
 
     if verbose:
         print("opened char com str csv in {:.04}s".format(time.time() - start))
@@ -253,6 +253,7 @@ def main():
             # { lvl : { cmt_inj_site { roi : ovlp } } }
             cmt_roi_dct = lvl_cmt_dct.get(lvl, {})
             cmt_inj_site_lst = cic_plot.cmt_inj_site_lst_from_grid_tup_str(
+                inj_site_lst=inj_site_lst,
                 cons_cmt_str=cons_cmt_str,
                 grid_tup_str=grid_tup_str)
             assert len(cmt_inj_site_lst) == 1, print(cmt_inj_site_lst)
