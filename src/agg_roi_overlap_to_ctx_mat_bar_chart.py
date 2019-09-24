@@ -200,7 +200,7 @@ def main():
                 max_roi_olp_dct[roi] = max(
                     max_roi_olp_dct[roi],
                     overlap)
-                    # mat_olp_calc(source_only=source_only, overlap=overlap))
+    # mat_olp_calc(source_only=source_only, overlap=overlap))
 
     else:  # retrograde
         for roi in inj_site_overlap_dcts:
@@ -212,24 +212,13 @@ def main():
                     max_roi_olp_dct[roi],
                     overlap)
 
-    # list of border tracts? to be excluded for group BLAam_bar_chart_ant
-    exclusion_list = ['ZI_A13', 'ZI_FF', 'aco', 'aco/act', 'act', 'amc', 'bic', 'border9', 'bsc', 'bsc/opt',
-                      'ccg/cing', 'cpd', 'cst/ml', 'dhc/alv', 'dhc/ec', 'dscp/scp', 'ect', 'fa', 'fp/ec', 'fr',
-                      'int', 'isl', 'islm', 'lot', 'mcp/vn', 'ml', 'ml/em', 'mlf', 'mtt', 'och', 'onl', 'opt',
-                      'rc/sez', 'rust/ii', 'sAMY', 'sm', 'st', 'tsp', 'vtd/rust', 'BORDER0']
-
     # only get labels with > max intensity, in ant case these are output rois
 
     if tracer_mode == 'anterograde':
-        # First iteration for BLAal
-        # mtv = 0.0034952523354931  # per houri, same value as ^^^^ VISAM_6a used for ratio
-        mtv = 3829  # overlap for VISam_6a in BLAam, raw pixel values
 
         src_lbls = sorted(src_lbl_set)
         dst_lbls = [''] + sorted([lbl for lbl in dst_lbl_set if
-                                  max_roi_olp_dct[lbl] >= mtv and
-                                  lbl.count('/') <= 1 and lbl not in exclusion_list and
-                                  "BORDER" not in lbl])
+                                  max_roi_olp_dct[lbl] > mtv])
 
         if verbose:
             print("Filtered\n{} with mtv {}...".format(
@@ -237,12 +226,9 @@ def main():
             print("result\n{}".format(dst_lbls[1:len(dst_lbls)]))
 
     else:  # retrograde
-        mtv = 9  # per houri
 
         src_lbls = sorted([lbl for lbl in src_lbl_set if
-                           max_roi_olp_dct[lbl] >= mtv and
-                           lbl.count('/') <= 1 and lbl not in exclusion_list and
-                           "BORDER" not in lbl])
+                           max_roi_olp_dct[lbl] > mtv])
         dst_lbls = [''] + sorted(dst_lbl_set)
 
         if verbose:
@@ -277,9 +263,7 @@ def main():
                         "WARNING: cell {} has no source or overlap".format(
                                 dst_lbl)
                     if tracer_mode == 'anterograde':
-                        cols.append(mat_olp_calc(source_only=source_only,
-                                                 overlap=overlap))
-                        # cols.append(overlap)  # raw pixel values
+                        cols.append(overlap)  # raw pixel values
                     else:  # retrograde
                         cols.append(overlap)  # append only the cell count
                 else:

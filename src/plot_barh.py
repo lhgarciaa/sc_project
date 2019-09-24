@@ -1,18 +1,21 @@
+#!/usr/bin/env python
+import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import to_hex
 from cic_dis import cic_utils
 import argparse
+import cPickle as pickle
 import os
-import pdb
 import json
+matplotlib.use('Agg')
+
 
 parser = argparse.ArgumentParser(
     description="Converts aggregated overlap output to connectivity "
                 "matrix csv")
 
-parser.add_argument('-r', '--region',
-                    help='type of region',
+parser.add_argument('-t', '--tracer_type',
+                    help='"ret" for retrograde or "ant" for anterograde',
                     required=True)
 
 parser.add_argument('-fs', '--fontsize',
@@ -20,22 +23,45 @@ parser.add_argument('-fs', '--fontsize',
                     type=int,
                     default=5)
 
+parser.add_argument('-i', '--input_matrix_csv_path',
+                    help='Input aggregated overlap path',
+                    required=True)
+
+parser.add_argument('-rgb', '--rgb_color',
+                    help="RGB string ex. 'r,g,b' ",
+                    default='0,0,0')
+
+parser.add_argument('-br', '--by_region',
+                    help="Sorts sections by region, using hierarchy json file",
+                    action='store_true')
+
+parser.add_argument('-s', '--save',
+                    help='Save generated figure',
+                    action='store_true')
+
+
 # READ ARGS
 args = vars(parser.parse_args())
 
-region_type = args['region']
+tracer_type = args['tracer_type']
 fontsize = args['fontsize']
-
-hierarchy_file = "../../hierarchy.json"
-assert os.path.isfile(hierarchy_file), "Hierarchy file is not were it's supposed to be"
-
-with open(hierarchy_file, 'r') as f:
-    json_string = f.read()
-    structure_dict = json.loads(json_string)
+input_matrix_csv_path = args['input_matrix_csv_path']
+save_figure = args['save']
+rgb = tuple(args['rgb_color'].split(','))
+by_region = args['by_region']
 
 
-# Sort by region? There should be a better way to do this
+# Sort by region? find a better way to do this also need json file with
+# allen institute hierarchy
 def sort_by_region(region_lst, values_lst):
+    hierarchy_file = "../../hierarchy.json"
+    assert os.path.isfile(hierarchy_file), "Hierarchy file {} missing".format(
+        hierarchy_file)
+
+    with open(hierarchy_file, 'r') as f:
+        json_string = f.read()
+        structure_dict = json.loads(json_string)
+
     by_region_dict = {}
     hits = 0
 
@@ -65,8 +91,10 @@ def sort_by_region(region_lst, values_lst):
         if not found:
             # check if they are custom
             if region == 'entl6':
-                by_region_dict["Hippocampal formation"][0].append(region_lst[indx])
-                by_region_dict["Hippocampal formation"][1].append(values_lst[indx])
+                by_region_dict["Hippocampal formation"][0].append(
+                    region_lst[indx])
+                by_region_dict["Hippocampal formation"][1].append(
+                    values_lst[indx])
                 hits += 1
             elif region in ['bstbac']:
                 by_region_dict["Pallidum"][0].append(region_lst[indx])
@@ -105,51 +133,16 @@ def sort_by_region(region_lst, values_lst):
     return master_region_lst, master_values_lst
 
 
-'''
+''' Example
 # BLAam
-matrix_csv_ret_path = '../../houri/BLA/publish_BLAam_bar_chart_ret/norm_ctx_mat_agg_BLAam_bar_chart_ret_roi/norm_ctx_mat_agg_BLAam_bar_chart_ret_roi.csv'      # NOQA
-matrix_csv_ant_path = '../../pl_probelauf/publish_BLAam_bar_chart_ant/norm_ctx_mat_agg_BLAam_bar_chart_ant_roi/norm_ctx_mat_agg_BLAam_bar_chart_ant_roi.csv'
+matrix_csv_ret_path = './norm_ctx_mat_agg_BLAam_bar_chart_ret_roi.csv'
+matrix_csv_ant_path = './norm_ctx_mat_agg_BLAam_bar_chart_ant_roi.csv'
 rgb = (82, 63, 195)
 # '''
-'''
-# BLAal
-matrix_csv_ret_path = "../../houri/BLA/publish_BLAal_bar_chart_ret/not_norm_ctx_mat_agg_BLAal_bar_chart_ret_roi/not_norm_ctx_mat_agg_BLAal_bar_chart_ret_roi.csv"  # NOQA
-matrix_csv_ant_path = "../../houri/BLA/publish_BLAal_bar_chart_ant/not_norm_ctx_mat_agg_BLAal_bar_chart_ant_roi/not_norm_ctx_mat_agg_BLAal_bar_chart_ant_roi.csv"
-rgb = (187, 63, 195)
-# '''
-'''
-# BLAp
-matrix_csv_ret_path = "../../houri/BLA/publish_BLAp_bar_chart_ret/not_norm_ctx_mat_agg_BLAp_bar_chart_ret_roi/not_norm_ctx_mat_agg_BLAp_bar_chart_ret_roi.csv"  # NOQA
-matrix_csv_ant_path = "../../houri/BLA/publish_BLAp_bar_chart_ant/not_norm_ctx_mat_agg_BLAp_bar_chart_ant_roi/not_norm_ctx_mat_agg_BLAp_bar_chart_ant_roi.csv"
-rgb = (63, 128, 193)
-# '''
-'''
-# BLAv
-matrix_csv_ret_path = "../../houri/BLA/publish_BLAv_bar_chart_ret/not_norm_ctx_mat_agg_BLAv_bar_chart_ret_roi/not_norm_ctx_mat_agg_BLAv_bar_chart_ret_roi.csv"  # NOQA
-matrix_csv_ant_path = "../../houri/BLA/publish_BLAv_bar_chart_ant/not_norm_ctx_mat_agg_BLAv_bar_chart_ant_roi/not_norm_ctx_mat_agg_BLAv_bar_chart_ant_roi.csv"
-rgb = (43, 31, 115)
-# '''
-'''
-# BMAp
-matrix_csv_ret_path = "../../houri/BLA/publish_BMAp_bar_chart_ret/not_norm_ctx_mat_agg_BMAp_bar_chart_ret_roi/not_norm_ctx_mat_agg_BMAp_bar_chart_ret_roi.csv"  # NOQA
-matrix_csv_ant_path = "../../houri/BLA/publish_BMAp_bar_chart_ant/not_norm_ctx_mat_agg_BMAp_bar_chart_ant_roi/not_norm_ctx_mat_agg_BMAp_bar_chart_ant_roi.csv"
-rgb = (108, 31, 115)
-# '''
-# '''
-# LA
-matrix_csv_ret_path = "../../houri/BLA/publish_LA_bar_chart_ret/not_norm_ctx_mat_agg_LA_bar_chart_ret_roi/not_norm_ctx_mat_agg_LA_bar_chart_ret_roi.csv"  # NOQA
-matrix_csv_ant_path = "../../houri/BLA/publish_LA_bar_chart_ant/not_norm_ctx_mat_agg_LA_bar_chart_ant_roi/not_norm_ctx_mat_agg_LA_bar_chart_ant_roi.csv"
-rgb = (31, 82, 115)
-# '''
-'''
-# BLAac
-matrix_csv_ret_path = "../../houri/BLA/publish_BLAac_bar_chart_ret/not_norm_ctx_mat_agg_BLAac_bar_chart_ret_roi/not_norm_ctx_mat_agg_BLAac_bar_chart_ret_roi.csv"  # NOQA
-matrix_csv_ant_path = "../../houri/BLA/publish_BLAac_bar_chart_ant/not_norm_ctx_mat_agg_BLAac_bar_chart_ant_roi/not_norm_ctx_mat_agg_BLAac_bar_chart_ant_roi.csv"
-rgb = (3, 144, 102)
-# '''
 
-# print("this is rgb: ", rgb)
-bar_color = map(lambda val: val / 255.0, rgb)
+
+# convert rgb colors to 0 to 1 scale
+bar_color = map(lambda val: int(val) / 255.0, rgb)
 
 fig, ax = plt.subplots()
 
@@ -158,12 +151,15 @@ rets = []
 rois = []
 
 #  Retrograde
-if region_type == 'ret':
-    assert os.path.isfile(matrix_csv_ret_path), "Ret file doesn't exist"
-    assert "ret" in matrix_csv_ret_path, "Are you sure this is a retrograde file?"
-    (row_roi_name_ret_npa, col_roi_name_ret_npa, ctx_mat_ret_npa) = cic_utils.read_ctx_mat(matrix_csv_ret_path)
+if tracer_type == 'ret':
+    assert os.path.isfile(input_matrix_csv_path), \
+        "Ret file doesn't exist {}".format(input_matrix_csv_path)
+    assert "ret" in input_matrix_csv_path, \
+        "Are you sure this is a retrograde file?"
+    (row_roi_name_ret_npa, col_roi_name_ret_npa, ctx_mat_ret_npa) = \
+        cic_utils.read_ctx_mat(input_matrix_csv_path)
     print("RETROGRADE")
-    print("USING: {}".format(matrix_csv_ret_path))
+    print("USING: {}".format(input_matrix_csv_path))
 
     for idx in range(len(ctx_mat_ret_npa)):
         rets.append(ctx_mat_ret_npa[idx][0])
@@ -173,7 +169,10 @@ if region_type == 'ret':
 
     assert len(rets) == len(rois), "Knot the same length!!!!"
 
-    rois, rets = sort_by_region(rois, rets)
+    # Seperate rois by region in hierarchy_file
+    if by_region:
+        rois, rets = sort_by_region(rois, rets)
+
     x = np.arange(len(rets))
 
     ax.bar(x, rets, align='center', color=bar_color, zorder=10)
@@ -181,13 +180,15 @@ if region_type == 'ret':
 
 
 #  Anterograde
-elif region_type == 'ant':
-    assert os.path.isfile(matrix_csv_ant_path), "Ant file doesn't exist"
-    assert "ant" in matrix_csv_ant_path, "Are you sure this is an Anterograde file?"
+elif tracer_type == 'ant':
+    assert os.path.isfile(input_matrix_csv_path), "Ant file doesn't exist"
+    assert "ant" in input_matrix_csv_path, \
+        "Are you sure this is an Anterograde file?"
     print("ANTEROGRADE")
-    print("USING: {}".format(matrix_csv_ant_path))
+    print("USING: {}".format(input_matrix_csv_path))
 
-    (row_roi_name_ant_npa, col_roi_name_ant_npa, ctx_mat_ant_npa) = cic_utils.read_ctx_mat(matrix_csv_ant_path)
+    (row_roi_name_ant_npa, col_roi_name_ant_npa, ctx_mat_ant_npa) = \
+        cic_utils.read_ctx_mat(input_matrix_csv_path)
 
     for idx in range(len(ctx_mat_ant_npa[0])):
         ants.append(ctx_mat_ant_npa[0][idx])
@@ -197,9 +198,10 @@ elif region_type == 'ant':
     assert len(ctx_mat_ant_npa[0]) == len(ants), "ants length don't match"
 
     assert len(ants) == len(rois), "Knot the same length!!!!"
-    # pdb.set_trace()
-    rois, ants = sort_by_region(rois, ants)
-    # pdb.set_trace()
+
+    # Seperate rois by region in hierarchy_file
+    if by_region:
+        rois, ants = sort_by_region(rois, ants)
 
     x = np.arange(len(ants))
     ax.bar(x, ants, align='center', color=bar_color, zorder=10)
@@ -214,5 +216,15 @@ ax.set_xticklabels(rois)
 ax.invert_xaxis()
 plt.setp(ax.get_xticklabels(), rotation=70, ha="center", fontsize=fontsize)
 
+# Save figure
+if save_figure:
+    out_path = input_matrix_csv_path.replace('.csv',
+                                             '_bar_graph.png')
+    plt.savefig(out_path, dpi=600)
+    pickle_path = cic_utils.pickle_path(out_path)
+    pickle.dump(args, open(pickle_path, "wb"))
+
+
 # Showing the plot
-plt.show()
+else:
+    plt.show()

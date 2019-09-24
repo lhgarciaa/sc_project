@@ -6,7 +6,7 @@ from cic_dis import cic_overlap
 import cPickle as pickle
 import csv
 from cic_dis import cic_utils
-from collections import defaultdict, Counter
+from collections import defaultdict
 import re
 
 
@@ -65,7 +65,8 @@ def main():
     ret_inj_site_overlap_dcts = defaultdict(lambda: defaultdict())
 
     # Repeat the process twice, once for each tracer type
-    for input_agg_overlap_csv in [ant_input_agg_overlap_csv, ret_input_agg_overlap_csv]:
+    for input_agg_overlap_csv in [ant_input_agg_overlap_csv,
+                                  ret_input_agg_overlap_csv]:
         tracer_mode = \
             "retrograde" if 'ret' in input_agg_overlap_csv else "anterograde"
 
@@ -76,7 +77,8 @@ def main():
             format(input_agg_overlap_csv)
 
         (agg_overlap_csv_header, agg_overlap_rows) = \
-            cic_overlap.read_agg_overlap_csv(input_csv_path=input_agg_overlap_csv)
+            cic_overlap.read_agg_overlap_csv(
+                input_csv_path=input_agg_overlap_csv)
 
         dst_lbl_set = frozenset()
         src_lbl_set = frozenset()
@@ -92,11 +94,13 @@ def main():
 
         for row_idx, row in enumerate(agg_overlap_rows):
             # get constant vals, assume
-            # Atlas Name, Atlas Version, Channel Number, Grid Size, Overlap Format
-            #   Tracer are the same for all rows
+            # Atlas Name, Atlas Version, Channel Number,
+            # Grid Size, Overlap Format
+            # Tracer are the same for all rows
             if row_idx == 0:
                 ATLAS_NAME = row[agg_overlap_csv_header.index('Atlas Name')]
-                ATLAS_VERSION = row[agg_overlap_csv_header.index('Atlas Version')]
+                ATLAS_VERSION = row[agg_overlap_csv_header.index(
+                    'Atlas Version')]
                 OVERLAP_FORMAT = row[agg_overlap_csv_header.index(
                     'Overlap Format')]
                 assert OVERLAP_FORMAT == 'Region'
@@ -116,8 +120,8 @@ def main():
             #   Atlas Name, Atlas Version, Channel Number, Grid Size, Overlap
             # Format
             assert atlas_name == ATLAS_NAME
-            assert atlas_version == ATLAS_VERSION, "{} does not equal {}".format(
-                atlas_version, ATLAS_VERSION)
+            assert atlas_version == ATLAS_VERSION, \
+                "{} does not equal {}".format(atlas_version, ATLAS_VERSION)
             assert overlap_format == OVERLAP_FORMAT
 
             inj_site = row[agg_overlap_csv_header.index('Injection Site')]
@@ -126,7 +130,8 @@ def main():
             # Need to support overlap data without hemisphere included
             #  if is included then set hemi normally
             if '(HEMISPHERE:R:G:B)' in agg_overlap_csv_header:
-                hemi_etc = row[agg_overlap_csv_header.index('(HEMISPHERE:R:G:B)')]
+                hemi_etc = row[agg_overlap_csv_header.index(
+                    '(HEMISPHERE:R:G:B)')]
                 hemi = hemi_etc.split(':')[0].replace('(', '')
             #  else if no hemi included then set hemi to None
             elif 'REGION RGB' in agg_overlap_csv_header:
@@ -147,7 +152,8 @@ def main():
                 (not eir or
                  len([r for r in eir if
                       r == roi or
-                      re.search('^' + r + '[a-z0-9_]', roi) is not None]) > 0)):
+                      re.search(
+                          '^' + r + '[a-z0-9_]', roi) is not None]) > 0)):
                 # ^^^ check for exact match e.g. VISal_2/3 or == VISal_2/3
                 # or that e.g. MO matches MOp but not MOB ^^^
                 # first make 'roi' cell label
@@ -169,11 +175,12 @@ def main():
                     src_lbl_set = src_lbl_set.union(
                         frozenset({roi_lbl}))
                 else:
-                    assert 0, 'Tracer type should either be antro or retrograde'
+                    assert 0, 'Tracer type should either be antro or ' \
+                              'retrograde'
 
                 # populate dcts
                 #  antero
-                #  { 'Injection Site' : '...' {roi_lbl1 : (source_only, overlap),
+                #  { 'Injection Site' : '...'{roi_lbl1: (source_only, overlap),
                 #                              roi_lbl2 : ...} }
                 if tracer_mode == 'anterograde':
                     inj_site_overlap_dct = \
@@ -196,8 +203,8 @@ def main():
 
                     inj_site_overlap_dct[inj_site] = overlap_tup
 
-            pct_str = "\r{0:0.2f}% complete... ".\
-                      format((float(row_idx)/float(len(agg_overlap_rows)))*100.0)
+            pct_str = "\r{0:0.2f}% complete... ".format(
+                (float(row_idx)/float(len(agg_overlap_rows)))*100.0)
             print(pct_str, end='')
 
         # define max overlap for each ROI
@@ -224,47 +231,27 @@ def main():
                         max_roi_olp_dct[roi],
                         overlap)
 
-        # Exclusion List, border tracts(?) among others
-        exclusion_list = ['ZI_A13', 'ZI_FF', 'aco', 'aco/act', 'act', 'amc', 'bic', 'border9', 'bsc', 'bsc/opt',
-                          'ccg/cing', 'cpd', 'cst/ml', 'dhc/alv', 'dhc/ec', 'dscp/scp', 'ect', 'fa', 'fp/ec', 'fr',
-                          'int', 'isl', 'islm', 'lot', 'mcp/vn', 'ml', 'ml/em', 'mlf', 'mtt', 'och', 'onl', 'opt',
-                          'rc/sez', 'rust/ii', 'sAMY', 'sm', 'st', 'tsp', 'vtd/rust', 'BORDER0']
-
-        # only get labels with > max intensity, in ant case these are output rois
+        # only get labels with > max intensity, ant case these are output rois
 
         if tracer_mode == 'anterograde':
-            mtv = 0.0034952523354931  # per Houri, the value of VISAM_6a from mat_olp_calc
 
             ant_src_lbls = sorted(src_lbl_set)
-            # ant_dst_lbls = sorted([lbl for lbl in dst_lbl_set if
-            #                         max_roi_olp_dct[lbl] >= mtv and
-            #                         lbl.count('/') <= 1 and lbl not in exclusion_list and
-            #                         "BORDER" not in lbl])
-            #
-            # dst_lbls += ant_dst_lbls
             ant_dst_lbls += sorted([lbl for lbl in dst_lbl_set if
-                                    max_roi_olp_dct[lbl] >= mtv and
-                                    lbl.count('/') <= 1 and lbl not in exclusion_list and
-                                    "BORDER" not in lbl])
+                                    max_roi_olp_dct[lbl] > mtv])
 
             if verbose:
                 print("Filtered\n{} with mtv {}...".format(
                     sorted(dst_lbl_set), mtv))
-                # print("result\n{}".format(dst_lbls[1:len(dst_lbls)]))
                 print("result\n{}".format(ant_dst_lbls[1:len(ant_dst_lbls)]))
 
         else:  # retrograde
-            mtv = 9  # per Houri
             ret_src_lbls = sorted([lbl for lbl in src_lbl_set if
-                                   max_roi_olp_dct[lbl] >= mtv and
-                                   lbl.count('/') <= 1 and lbl not in exclusion_list and
-                                   "BORDER" not in lbl])
+                                   max_roi_olp_dct[lbl] > mtv])
             ret_dst_lbls = sorted(dst_lbl_set)
 
             if verbose:
                 print("Filtered\n{} with mtv {}...".format(
                     sorted(src_lbl_set), mtv))
-                # print("result\n{}".format(src_lbls[1:len(src_lbls)]))
                 print("result\n{}".format(ret_src_lbls[1:len(ret_src_lbls)]))
 
     # Get complete list of src and dst lbls
@@ -277,13 +264,15 @@ def main():
 
     assert len(src_lbls) == len(dst_lbls), "Should be equal number of labels"
 
-    # fill all rows with dct lst, need initial blank for header
+    # fill all rows with dct lst, need initial blank for headers
     with open(output_ctx_mat_csv, 'wb') as csvfile:
         csvwriter = csv.writer(csvfile)
 
+        # Sort source and destination lbls
         src_lbls = sorted(src_lbls)
         dst_lbls = sorted(dst_lbls)
 
+        # Add leading space to dst_lbls and write as first row
         dst_lbls = [''] + dst_lbls
         csvwriter.writerow(dst_lbls)
 
@@ -319,7 +308,6 @@ def main():
                     if src_lbl in ant_src_lbls:
                         # Checking if labeling also present retrograde
                         rec_dct = ret_inj_site_overlap_dcts.get(dst_lbl, None)
-                        # if inverse_labeling_exists(rec_dct, dst_lbl, src_lbl) and dst_lbl in ret_src_lbls:
                         if inverse_labeling_exists(rec_dct, dst_lbl, src_lbl):
 
                             cols.append(1)
@@ -329,7 +317,6 @@ def main():
                     else:  # retrograde
                         # Checking if labeling also present retrograde
                         rec_dct = ant_inj_site_overlap_dcts.get(dst_lbl, None)
-                        # if inverse_labeling_exists(rec_dct, dst_lbl, src_lbl) and dst_lbl in ant_src_lbls:
                         if inverse_labeling_exists(rec_dct, dst_lbl, src_lbl):
 
                             cols.append(1)
