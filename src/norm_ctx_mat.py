@@ -81,7 +81,12 @@ def main():
                 if idx != max_row_idx:
                     row_total = cic_utils.row_total(ctx_mat_npa=ctx_mat_npa,
                                                     idx=idx)
-                    fact = float(max_total)/float(row_total)
+                    try:
+                        fact = float(max_total)/float(row_total)
+                    except:
+                        print("WARNING: Nonesense for now, 0 division, row_total")
+                        fact = 0
+
                     if verbose:
                         print(
                             "Normalizing {} row total {} with factor {}".

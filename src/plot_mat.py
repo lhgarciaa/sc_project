@@ -103,6 +103,27 @@ def main():
         help='Sort communities by average value of member rows',
         action='store_true')
 
+    parser.add_argument(
+        '-abc', '--alpha_community_rows',
+        help='Sort community rows rois alphabetically',
+        action='store_true')
+
+    parser.add_argument(
+        '-ncs', '--no_col_shift',
+        help='Keeps columns from re-organizing, only works for SC divisions',
+        action='store_true')
+
+    parser.add_argument(
+        '-etb', '--empty_to_bottom',
+        help='Shifts 1 row communities (empty) to bottom of matrix',
+        action='store_true')
+
+    parser.add_argument(
+        '-sccr', '--sc_custom_reorder',
+        help='Will reorder based on sensory areas top, higher order bottom'
+             'sensory areas from Z to A, higher from A to Z',
+        action='store_true')
+
     parser.add_argument('-dsn', '--draw_subnetwork',
                         help='Draw only the subnetwork specified')
 
@@ -141,6 +162,14 @@ def main():
     rankdir = args['rankdir']
 
     row_value_community_sort = args['row_value_community_sort']
+
+    alphabetize_rows = args['alpha_community_rows']
+
+    no_col_shift = args['no_col_shift']
+
+    empty_to_bottom = args['empty_to_bottom']
+
+    sc_custom_reorder = args['sc_custom_reorder']
 
     draw_subnetwork = args['draw_subnetwork']
 
@@ -313,6 +342,25 @@ def main():
         else:
             (y_bounds, new_row_roi_indices) = bct.grid_communities(row_ci)
             (x_bounds, new_col_roi_indices) = bct.grid_communities(col_ci)
+
+        if alphabetize_rows:
+            new_row_roi_indices = \
+                cic_plot.alpha_row_roi_indices(
+                    row_roi_name_npa, new_row_roi_indices, row_ci)
+
+        if no_col_shift:
+            # Leaves the order of columns intact
+            new_col_roi_indices = np.arange(len(col_ci))
+
+        if sc_custom_reorder:
+            new_row_roi_indices = \
+                cic_plot.sc_custom_row_roi_indices(
+                    row_roi_name_npa, new_row_roi_indices, row_ci)
+
+        if empty_to_bottom:
+            y_bounds, new_row_roi_indices = \
+                cic_plot.empty_row_roi_indices(
+                    row_roi_name_npa, new_row_roi_indices, row_ci)
 
         new_col_roi_name_npa = np.array(col_roi_name_npa[new_col_roi_indices])
         new_row_roi_name_npa = np.array(row_roi_name_npa[new_row_roi_indices])

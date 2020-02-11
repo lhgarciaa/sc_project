@@ -34,6 +34,18 @@ def main():
                         help='List of case:section tuples to exclude from '
                         'ctx mat e.g. -es SW130212-02A:1_09 SW160212-02A:1_10',
                         nargs='+')
+    parser.add_argument('-div', '--by_sc_division',
+                        help='Aggregate by division, instead of actual rois',
+                        action='store_true')
+    parser.add_argument('-raw', '--raw_pixel',
+                        help='Use raw pixel value, intead of proportional',
+                        action='store_true')
+    parser.add_argument('-lvl', '--add_level',
+                        help='Add level information to roi label',
+                        action='store_true')
+    parser.add_argument('-ma', '--multiple_atlases',
+                        help='Use overlap files from multiple atlases',
+                        action='store_true')
     parser.add_argument('-v', '--verbose',
                         help='Print extra information about conversion',
                         action='store_true')
@@ -49,6 +61,10 @@ def main():
     exclude_sections = args['exclude_sections']
     eir = args['exclusively_include_rois']
     mtv = args['minimum_threshold_value']
+    by_division = args['by_sc_division']
+    raw_pixel = args['raw_pixel']
+    add_level = args['add_level']
+    multi_atlas = args['multiple_atlases']
     tracer_mode = \
         "retrograde" if 'ret' in input_agg_overlap_csv else "anterograde"
 
@@ -102,13 +118,19 @@ def main():
         # assert these are always the same
         #   Atlas Name, Atlas Version, Channel Number, Grid Size, Overlap
         # Format
-        assert atlas_name == ATLAS_NAME
+        if multi_atlas:
+            if atlas_name != ATLAS_NAME:
+                print("WARNING: Multiple atlases detected: {}, {}".format(
+                    atlas_name, ATLAS_NAME))
+        else:
+            assert atlas_name == ATLAS_NAME
         assert atlas_version == ATLAS_VERSION, "{} does not equal {}".format(
             atlas_version, ATLAS_VERSION)
         assert overlap_format == OVERLAP_FORMAT
 
         inj_site = row[agg_overlap_csv_header.index('Injection Site')]
         overlap = int(row[agg_overlap_csv_header.index('OVERLAP')])
+        level = int(row[agg_overlap_csv_header.index('ARA Level')])
 
         # Need to support overlap data without hemisphere included
         #  if is included then set hemi normally
@@ -138,7 +160,25 @@ def main():
             # ^^^ check for exact match e.g. VISal_2/3 or == VISal_2/3
             # or that e.g. MO matches MOp but not MOB ^^^
             # first make 'roi' cell label
-            roi_lbl = "{}".format(roi)
+            if by_division:
+                sep_roi = roi.split('_')  # ex. SCzo_div1, ['SCzo', 'div1']
+                div_lbl = sep_roi[len(sep_roi) - 1].upper()
+                if div_lbl == 'DIV1':
+                    div_lbl = 'SC.m'
+                elif div_lbl == 'DIV2':
+                    div_lbl = 'SC.cm'
+                elif div_lbl == 'DIV3':
+                    div_lbl = 'SC.cl'
+                else:
+                    assert div_lbl == 'DIV4'
+                    div_lbl = 'SC.l'
+                roi_lbl = "{}".format(div_lbl)
+            else:
+                roi_lbl = "{}".format(roi)
+
+            # if True, append level to roi_lbl
+            if add_level:
+                roi_lbl = "{}_{}".format(roi_lbl, level)
 
             # TODO change inj_site and other terminology to src vs. dest
             # build labels and dct lst
@@ -260,8 +300,11 @@ def main():
                         "WARNING: cell {} has no source or overlap".format(
                                 dst_lbl)
                     if tracer_mode == 'anterograde':
-                        cols.append(mat_olp_calc(source_only=source_only,
-                                                 overlap=overlap))
+                        if raw_pixel:
+                            cols.append(overlap)
+                        else:
+                            cols.append(mat_olp_calc(source_only=source_only,
+                                                     overlap=overlap))
                     else:  # retrograde
                         cols.append(overlap)  # append only the cell count
                 else:
