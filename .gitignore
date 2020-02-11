@@ -8,3 +8,9 @@ tmp
 old_*
 smoke_tests/.*.p
 test_data/.*.p
+publish*/
+.DS_Store
+.idea/
+venv_cranium-dev/
+.idea/
+qsub_logs/
