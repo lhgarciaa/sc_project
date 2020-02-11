@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import os
+import csv
 from cic_dis import cic_utils
 import cPickle as pickle
 
@@ -110,6 +111,10 @@ def main():
                         help='Adds colorbar next to figure',
                         action='store_true')
 
+    parser.add_argument('-csv', '--output_csv',
+                        help='Outputs a csv, instead of a figure',
+                        action='store_true')
+
     args = vars(parser.parse_args())
 
     matrix_csv_path = args['matrix_csv']
@@ -125,6 +130,7 @@ def main():
     no_shading = args['no_shading']
     percentage = args['percentage']
     legend = args['legend']
+    output_csv = args['output_csv']
     fmt = "{}".format(args['format'])
     output_dir, base_name = os.path.split(matrix_csv_path)
     chart_type = "_table"
@@ -193,6 +199,22 @@ def main():
         for i in range(len(new_row_roi_name_npa)):
             row_total = np.sum(reorder_ctx_mat_npa[i])
             reorder_ctx_mat_npa[i] = reorder_ctx_mat_npa[i] / row_total
+
+    if output_csv:
+        all_rows = []
+        print("col name: ", new_col_roi_name_npa)
+        all_rows.append([' '] + list(new_col_roi_name_npa))
+        for rowe in range(len(new_row_roi_name_npa)):
+            all_rows.append([new_row_roi_name_npa[rowe]] +
+                            list(reorder_ctx_mat_npa[rowe]))
+        print("row name: ", new_row_roi_name_npa)
+
+        with open(graph_name, 'wb') as csvfile:
+            csvwriter = csv.writer(csvfile)
+
+            csvwriter.writerows(all_rows)
+        print("Output to {}".format(graph_name))
+        return
 
     # Plot creation
     fig, ax = plt.subplots(figsize=(7.5, 10))

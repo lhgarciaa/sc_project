@@ -8,6 +8,24 @@ import os
 from cic_dis import cic_utils
 # import cPickle as pickle
 
+COLORS = ('#990000', '#FF6600', '#116600', '#660078')
+
+NAMES = ('SC.m', 'SC.cm', 'SC.cl', 'SC.l')
+
+# Custom labels provided by Nora for SC-assoc-stacked_bar_ant group
+SC_ASSOC_LABELS = ["RSPv_interm", "RSPv_caudal", "RSPd_rostral", "RSPagl",
+                   "RSPd_caudal", "PTLp_lat", "TEa_caudal", "ACAv_caudal",
+                   "ACAv_interm", "ACAv_rostral", "PTLp_med", "RSPv_rostral",
+                   "ACAd_interm", "ACAd_caudal", "ACAd_rostral", "TEa_rostral",
+                   "ORBm", "PL", "ILA", "ORBvl", "ORBl"]
+
+# Custom labels provided by Nora for SC-sensory-stacked_bar-ant group
+SC_SENSO_LABELS = ["VISp_caudal", "VISp_caudomed", "VISp_rostromed", "VISal",
+                   "VISam", "AUDp_interm", "AUDd", "MOs_medial", "SSp_tr",
+                   "MOs_caudal", "MOs_lateral", "SSp_bfd", "MOp-bfd",
+                   "MOp-oro", "MOs_rostral", "MOp-tr", "SSp_ll", "SSp_m",
+                   "SSp_n", "SSp_ul", "SSs"]
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -60,8 +78,6 @@ def main():
     chart_type = args['chart_type']
     value_type = args['value_type']
     injection_site = args['injection_site']
-    colors = ('#990000', '#FF6600', '#116600', '#660078')
-    names = ('SC.m', 'SC.cm', 'SC.cl', 'SC.l')
     output_dir, base_name = os.path.split(matrix_csv_path)
     out_path = ''
 
@@ -113,7 +129,7 @@ def main():
                                   site_lst[site],
                                   out_path,
                                   value_type,
-                                  colors)
+                                  COLORS)
         elif chart_type == 'multi_prop':
             roi_values = get_div_proportional_values(div_level_dict)
             roi_dict[site_lst[site]] = roi_values
@@ -121,7 +137,7 @@ def main():
             generate_single_chart(div_level_dict,
                                   site_lst[site],
                                   out_path,
-                                  colors)
+                                  COLORS)
 
     if chart_type == 'multi_prop':
         graph_name = base_name.replace(
@@ -130,9 +146,7 @@ def main():
                                        value_type,
                                        fmt))
         out_path = os.path.join(output_dir, graph_name)
-        generate_proportion_group_chart(roi_dict, "you", out_path, names, colors)
-        print("These are the values: ")
-        print(roi_dict)
+        generate_proportion_group_chart(roi_dict, "Unused", out_path, NAMES, COLORS)
 
     print("Done")
 
@@ -178,22 +192,13 @@ def generate_single_chart(div_lvl_dict, title, out_path, colors):
 
 
 def generate_proportion_group_chart(roi_dict, title, out_path, names, colors):
-    # labels = list(roi_dict.keys())
-    if 'asso' in out_path:
-        # labels = ["RSPv_interm", "RSPv_caudal", "RSPd_rostral", "RSPagl", "PTLp_lat", "RSPd_caudal", "ACAv_interm", "TEa_caudal", "ACAv_caudal", "PTLp_med", "ACAd_interm", "ACAv_rostral", "RSPv_rostral", "ACAd_rostral", "ACAd_caudal", "ORBm", "PL", "ILA", "TEa_rostral", "ORBvl", "ORBl"]
-        # labels = ["RSPv_interm", "RSPv_caudal", "RSPd_rostral", "RSPagl",
-        #           "RSPd_caudal", "RSPv_rostral", "PTLp_lat", "TEa_caudal",
-        #           "ACAv_interm", "ACAv_caudal", "ACAd_interm", "ACAv_rostral",
-        #           "PTLp_med", "ACAd_rostral", "ACAd_caudal", "TEa_rostral",
-        #           "ORBm", "PL", "ILA", "ORBvl", "ORBl"]
-        labels = ["RSPv_interm", "RSPv_caudal", "RSPd_rostral", "RSPagl", "RSPd_caudal", "PTLp_lat", "TEa_caudal", "ACAv_caudal", "ACAv_interm", "ACAv_rostral", "PTLp_med", "RSPv_rostral", "ACAd_interm", "ACAd_caudal", "ACAd_rostral", "TEa_rostral", "ORBm", "PL", "ILA", "ORBvl", "ORBl"]
-        # labels = ["RSPv_interm", "RSPv_caudal", "RSPd_rostral", "RSPagl", "RSPd_caudal", "PTLp_lat", "TEa_caudal", "ACAv_caudal", "ACAv_interm", "ACAv_rostral", "ACAd_interm", "ACAd_caudal", "ACAd_interm", "ACAd_rostral", "RSPv_rostral", "PTLp_med", "TEa_rostral", "ORBm", "PL", "ORBvl", "ILA", "ORBl"]
+    if 'SC-assoc' in out_path:
+        labels = SC_ASSOC_LABELS
+    elif 'SC-sensory' in out_path:
+        labels = SC_SENSO_LABELS
     else:
-        labels = ["VISp_caudal", "VISp_caudomed", "VISp_rostromed", "VISal",
-                  "VISam", "AUDp_interm", "AUDd", "MOs_medial", "SSp_tr",
-                  "MOs_caudal", "MOs_lateral", "SSp_bfd", "MOp-bfd",
-                  "MOp-oro", "MOs_rostral", "MOp-tr", "SSp_ll", "SSp_m",
-                  "SSp_n", "SSp_ul", "SSs"]
+        # If not using custom names, simply use key names
+        labels = list(roi_dict.keys())
 
     # data = np.array(list(roi_dict.values()))
 
